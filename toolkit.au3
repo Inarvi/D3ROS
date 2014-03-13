@@ -1885,7 +1885,7 @@ Func offsetlist()
 
 
 	;//OBJECT MANAGER
-	Global $ofs_objectmanager = 0x1CD63EC ;0x1cd7a04;0x18CE394;0x018CD394 ;0x18939C4 ;0x1873414 ;0x0186FA3C ;0x1543B9C ;0x15A0BEC ;0x015A1BEC;0x15A0BEC
+	Global $ofs_objectmanager = 0x1CD841C ;0x1CD63EC ;0x1cd7a04;0x18CE394;0x018CD394 ;0x18939C4 ;0x1873414 ;0x0186FA3C ;0x1543B9C ;0x15A0BEC ;0x015A1BEC;0x15A0BEC
 	Global $ofs__ObjmanagerActorOffsetA = 0x920 ;0x8C8 ;0x8b0 ;2.0
 	Global $ofs__ObjmanagerActorCount = 0x108
 	Global $ofs__ObjmanagerActorOffsetB = 0x120 ;0x148 ;0x148
@@ -3643,8 +3643,10 @@ Func _leavegame()
 			_log("Menu Open but btn leaveGame Doesnt Exit yet")
 		WEnd
 
+While fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
 		ClickUI("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1644)
-
+		Sleep(Random(200, 300, 1))
+WEnd
 		Sleep(Random(500, 1000, 1))
 		_log("Leave Game Done")
 	EndIf
@@ -6410,7 +6412,7 @@ Func _TownPortalnew($mode=0)
 $compt=0
 
 	While Not _intown()
-
+		Send("{SPACE}")
 		_log("tour de boucle _intown")
 
 		$compt += 1
