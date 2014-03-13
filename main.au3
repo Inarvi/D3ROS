@@ -39,6 +39,12 @@ Global $Byte_NoItem_Identify, $Xp_Moy_Hrs, $ofs_objectmanager, $_MyGuid, $ofs_Lo
 		$Byte_Full_Inventory[2], $Byte_Full_Stash[2], $Byte_Boss_TpDeny[2]
 
 
+Global $AverageDps
+Global $NbMobsKilled
+$AverageDps=0 ; DPS constates
+$NbMobsKilled=1 ; Nombre de Mobs croisés
+
+
 Global $Count_ACD = 0
 Global $GetACD
 Global $IgnoreItemList = ""
@@ -242,7 +248,7 @@ Func _botting()
 				$disconnectcount += 1
 				_log("Disconnected dc4")
 				Sleep(1000)
-				_randomclick(398, 349)
+				ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
 				Sleep(1000)
 				While Not (_onloginscreen() Or _inmenu())
 					Sleep(Random(10000, 15000))
@@ -284,8 +290,9 @@ Func _botting()
 				_log("Disconnected dc2")
 				$disconnectcount += 1
 				Sleep(1000)
-				_randomclick(398, 349)
-				_randomclick(398, 349)
+				ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
+				sleep(50)
+				ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
 			EndIf
 
 			If _playerdead() Then
@@ -298,13 +305,6 @@ Func _botting()
 
 		While _inmenu() = False And _onloginscreen() = False
 			Sleep(10)
-			If  _checkdisconnect() Then
-				Sleep(1000)
-				_randomclick(398, 349)
-				_randomclick(398, 349)
-			else
-			;continue
-			endif
 		WEnd
 
 	WEnd
@@ -443,7 +443,7 @@ MouseMove($Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2, 1)
 ;listui(1)
 
 ;Repair()
-;Detect_Str_full_inventory()
+
 
 ;StashAndRepair()
 ;_log(fastcheckuiitemvisible("Root.NormalLayer.shop_dialog_mainPage.repair_dialog.RepairEquipped", 1, 124))
@@ -456,13 +456,98 @@ MouseMove($Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2, 1)
 
 ;_log(fastcheckuiitemactived("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139))
 ;ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_in_town", 496)
-_log("c'est partit !")
-_leavegame()
+;_log("c'est partit !")
+;While NOT fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
+;			sleep(200)
+;		WEnd
+;_log("trouvé")
+
+
+
+
+	;$result = GetOfsFastUI("Root.NormalLayer.inventory_dialog_mainPage.timer slot 0 x0 y0", 1509)
+
+	;Dim $Point = GetPositionUI($result)
+	;Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
+
+
+	;_log( $Point2[0] & " - " & $Point2[1] & " - " & $Point2[2] & " - " & $Point2[3])
+
+
+	;$FirstCaseX = $Point2[0] + $Point2[2] / 2
+	;$FirstCaseY = $Point2[1] + $Point2[3] / 2
+
+	;$SizeCaseX =  $Point2[2]
+	;$SizeCaseY =  $Point2[3]
+
+
+;	while $c <= 9 AND $l <= 5
+
+		;$XCoordinate = $FirstCaseX + $c * $SizeCaseX
+		;$YCoordinate = $FirstCaseY + $l * $SizeCaseY
+
+;		ClickInventory($c, $l)
+
+;		if $c < 9 Then
+;			$c += 1
+;		Else
+;			$c = 0
+;			$l += 1
+;		EndIf
+
+
+;		sleep(100)
+		;MouseMove($XCoordinate, $YCoordinate, 10)
+
+;	Wend
+
+#cs
+_log("CheckHotkeys init")
+		CheckHotkeys()
+
+		_log("Auto_Spell_init init")
+		Auto_spell_init()
+		_log("GestSpellInit")
+		GestSpellInit()
+
+
+		_log("LoadAttribGlobalStuff init")
+		Load_Attrib_GlobalStuff()
+
+
+		$maxhp = GetAttribute($_MyGuid, $Atrib_Hitpoints_Max_Total) ; dirty placement
+		_log("Max HP : " & $maxhp)
+		GetMaxResource($_MyGuid, $namecharacter)
+		Send("t")
+		Sleep(500)
+		Detect_Str_full_inventory()
+
+StashAndRepair()
+#ce
+
+
+listui(1)
+
 
 EndFunc   ;==>Testing ##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******###
 
 
+Func ClickInventory($c, $l)
+	$result = GetOfsFastUI("Root.NormalLayer.inventory_dialog_mainPage.timer slot 0 x0 y0", 1509)
+	Dim $Point = GetPositionUI($result)
+	Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
 
+	$FirstCaseX = $Point2[0] + $Point2[2] / 2
+	$FirstCaseY = $Point2[1] + $Point2[3] / 2
+
+	$SizeCaseX =  $Point2[2]
+	$SizeCaseY =  $Point2[3]
+
+	$XCoordinate = $FirstCaseX + $c * $SizeCaseX
+	$YCoordinate = $FirstCaseY + $l * $SizeCaseY
+
+	MouseClick("right", $XCoordinate, $YCoordinate)
+EndFunc
 
 ;###########################################################################
 ;###########################################################################

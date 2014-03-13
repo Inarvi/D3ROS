@@ -100,7 +100,6 @@ Func CheckWindowD3Size()
 		WinSetOnTop("[CLASS:D3 Main Window Class]", "", 0)
 		MsgBox(0, Default, "Erreur Dimension : Il faut être en 800 x 600 et non pas en " & $sized3[0] & " x " & $sized3[1] & ".")
 		Terminate()
-
 	EndIf
 EndFunc   ;==>CheckWindowD3Size
 ;;--------------------------------------------------------------------------------
@@ -1507,7 +1506,8 @@ Func FilterBackpack()
 		Return $return
 	EndIf
 	Return False
-EndFunc   ;==>FilterBackpack
+EndFunc   ;==>
+
 
 
 Func _filter2attrib($CurrentIdAttrib, $filter2read)
@@ -1885,7 +1885,7 @@ Func offsetlist()
 
 
 	;//OBJECT MANAGER
-	Global $ofs_objectmanager = 0x1CD841C ;0x1CD63EC ;0x1cd7a04;0x18CE394;0x018CD394 ;0x18939C4 ;0x1873414 ;0x0186FA3C ;0x1543B9C ;0x15A0BEC ;0x015A1BEC;0x15A0BEC
+	Global $ofs_objectmanager = 0x1CD841C;0x1CD63EC ;0x1cd7a04;0x18CE394;0x018CD394 ;0x18939C4 ;0x1873414 ;0x0186FA3C ;0x1543B9C ;0x15A0BEC ;0x015A1BEC;0x15A0BEC
 	Global $ofs__ObjmanagerActorOffsetA = 0x920 ;0x8C8 ;0x8b0 ;2.0
 	Global $ofs__ObjmanagerActorCount = 0x108
 	Global $ofs__ObjmanagerActorOffsetB = 0x120 ;0x148 ;0x148
@@ -2132,8 +2132,8 @@ Func FromD3toScreenCoords($_x, $_y, $_z)
 	ElseIf $return[0] < 40 Then ;car on a pas l'envie de cliquer dans les icone du chat
 		$return[0] = 40
 	EndIf
-	If $return[1] > 540 Then ;car on a pas l'envie de cliquer dans la bare des skills
-		$return[1] = 540
+	If $return[1] > 500 Then ;car on a pas l'envie de cliquer dans la bare des skills
+		$return[1] = 500
 	ElseIf $return[1] < 10 Then
 		$return[1] = 10
 	EndIf
@@ -3024,6 +3024,7 @@ EndFunc   ;==>DetectElite
 ;;--------------------------------------------------------------------------------
 ;;      KillMob()
 ;;--------------------------------------------------------------------------------
+#cs
 Func KillMob($name, $offset, $Guid, $test_iterateallobjectslist2)
         $return = True
         $begin = TimerInit()
@@ -3088,7 +3089,85 @@ Func KillMob($name, $offset, $Guid, $test_iterateallobjectslist2)
         WEnd
         Return $return
 EndFunc   ;==>KillMob
+#ce
 
+Func KillMob($Name, $offset, $Guid, $test_iterateallobjectslist2)
+        $return = True
+        $begin = TimerInit()
+
+
+        Dim $pos = UpdateObjectsPos($offset)
+
+        $Coords = FromD3toScreenCoords($pos[0], $pos[1], $pos[2])
+        MouseMove($Coords[0], $Coords[1], 3)
+
+        $elite = DetectElite($Guid)
+        ;loop the attack until the mob is dead
+
+        _log("Attacking : " & $Name & "; Type : " & $elite);
+
+
+        Local $maxhipi = Round(IterateActorAtribs($Guid, $Atrib_Hitpoints_Cur))
+        Local $timerinit = TimerInit()
+        Local $timetokill
+        Local $dps
+        Local $varTemp
+
+        While IterateActorAtribs($Guid, $Atrib_Hitpoints_Cur) > 0
+
+
+
+                $myposs_aff = GetCurrentPos()
+
+                If _playerdead_revive() Then
+                        $return = False
+                        ExitLoop
+                EndIf
+                Dim $pos = UpdateObjectsPos($offset)
+
+                If $gestion_affixe = "true" Then maffmove($myposs_aff[0], $myposs_aff[1], $myposs_aff[2], $pos[0], $pos[1])
+                For $a = 0 To UBound($test_iterateallobjectslist2) - 1
+
+                        $CurrentACD = GetACDOffsetByACDGUID($test_iterateallobjectslist2[$a][0]); ###########
+                        $CurrentIdAttrib = _memoryread($CurrentACD + 0x120, $d3, "ptr"); ###########
+
+                        If GetAttribute($CurrentIdAttrib, $Atrib_Hitpoints_Cur) > 0 Then
+                                Dim $dist_maj = UpdateObjectsPos($test_iterateallobjectslist2[$a][8])
+                                $test_iterateallobjectslist2[$a][9] = $dist_maj[3]
+                        Else
+                                $test_iterateallobjectslist2[$a][9] = 10000
+                        EndIf
+                Next
+
+                _ArraySort($test_iterateallobjectslist2, 0, 0, 0, 9)
+
+                $dist_verif = GetDistance($test_iterateallobjectslist2[0][2], $test_iterateallobjectslist2[0][3], $test_iterateallobjectslist2[0][4])
+                Dim $pos = UpdateObjectsPos($offset)
+                If $pos[3] > $dist_verif + 5 Then ExitLoop
+                $Coords = FromD3toScreenCoords($pos[0], $pos[1], $pos[2])
+                MouseMove($Coords[0], $Coords[1], 3)
+                GestSpellcast($pos[3], 1, $elite, $Guid, $offset)
+                If TimerDiff($begin) > $a_time Then
+                        $killtimeout += 1
+                        ; after this time, the mob should be dead, otherwise he is probly unkillable
+                        $return = False
+                        ExitLoop
+                EndIf
+        WEnd
+
+        $varTemp=IterateActorAtribs($Guid, $Atrib_Hitpoints_Cur)
+
+        If (IsNumber($varTemp) And $varTemp>0) Then
+                        $maxhipi = $maxhipi - $varTemp
+        EndIf
+
+        $timetokill = Round(TimerDiff($timerinit) / 1000, 2)
+        $dps = Round($maxhipi / $timetokill)
+        $AverageDps=Ceiling( ($AverageDps*($NbMobsKilled-1) + $dps ) / $NbMobsKilled)
+        $NbMobsKilled+=1
+
+        Return $return
+EndFunc   ;==>KillMob
 
 ;;--------------------------------------------------------------------------------
 ;;      Grabit()
@@ -3250,8 +3329,28 @@ Func CheckItem($_GUID, $_NAME, $_MODE = 0)
 EndFunc   ;==>CheckItem
 
 Func InventoryMove($col = 0, $row = 0)
-	$Coords = UiRatio(530 + ($col * 27), 338 + ($row * 27))
-	MouseMove($Coords[0], $Coords[1], 2)
+
+	;$Coords = UiRatio(530 + ($col * 27), 338 + ($row * 27))
+	;MouseMove($Coords[0], $Coords[1], 2)
+	;MouseClick("right", $XCoordinate, $YCoordinate)
+
+
+	$result = GetOfsFastUI("Root.NormalLayer.inventory_dialog_mainPage.timer slot 0 x0 y0", 1509)
+	Dim $Point = GetPositionUI($result)
+	Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
+
+	$FirstCaseX = $Point2[0] + $Point2[2] / 2
+	$FirstCaseY = $Point2[1] + $Point2[3] / 2
+
+	$SizeCaseX =  $Point2[2]
+	$SizeCaseY =  $Point2[3]
+
+	$XCoordinate = $FirstCaseX + $col * $SizeCaseX
+	$YCoordinate = $FirstCaseY + $row * $SizeCaseY
+
+	MouseMove($XCoordinate, $YCoordinate, 2)
+
+
 EndFunc   ;==>InventoryMove
 
 ;;--------------------------------------------------------------------------------
@@ -3404,6 +3503,9 @@ EndFunc   ;==>OpenWp
 
 Func TakeWPV2($WPNumber=0)
 
+	Local $Curentarea = GetLevelAreaId()
+    Local $Newarea = GetLevelAreaId()
+
 	if $GameFailed = 1 Then return False
 	While Not offsetlist()
 		Sleep(10)
@@ -3458,14 +3560,25 @@ Func TakeWPV2($WPNumber=0)
 
 
 			sleep(500)
-_log("clicking wp UI")
-			Dim $Point = GetPositionUI(GetOfsUI($NameUI, 1))
-			Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
+			_log("clicking wp UI")
 
-			MouseClick("left", $Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2)
-			;MouseMove($Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2, 1)
+			;Dim $Point = GetPositionUI(GetOfsUI($NameUI, 1))
+			;Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
+			;MouseClick("left", $Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2)
 
-			sleep(2000)
+			ClickUI($NameUI)
+
+
+
+			Local $areatry = 0
+			  While $Newarea = $Curentarea And $areatry < 13 ; on attend d'avoir une nouvelle Area environ 6 sec
+				$Newarea = GetLevelAreaId()
+				Sleep(500)
+				$areatry += 1
+			  WEnd
+
+			Sleep(500)
+
 			While Not offsetlist()
 				Sleep(10)
 			WEnd
@@ -3585,7 +3698,7 @@ EndFunc   ;==>TakeWP
 ;;--------------------------------------------------------------------------------
 Func _resumegame()
 	_log("Resume Game")
-	Sleep(Random(500, 1000, 1))
+	Sleep(Random(1500, 3000, 1))
 	If $Try_ResumeGame > 2 Then
 		Local $wait_aftertoomanytry = Random(($Try_ResumeGame * 2) * 60000, ($Try_ResumeGame * 2) * 120000, 1)
 		_log("Sleep after too many _resumegame -> " & $wait_aftertoomanytry)
@@ -3643,10 +3756,11 @@ Func _leavegame()
 			_log("Menu Open but btn leaveGame Doesnt Exit yet")
 		WEnd
 
-While fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
-		ClickUI("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1644)
-		Sleep(Random(200, 300, 1))
-WEnd
+		While fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
+			ClickUI("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1644)
+			Sleep(Random(600, 1200, 1))
+		WEnd
+
 		Sleep(Random(500, 1000, 1))
 		_log("Leave Game Done")
 	EndIf
@@ -4361,6 +4475,8 @@ Func StatsDisplay()
         $DebugMessage = $DebugMessage & "GOLD Obtenu : " & formatNumber(Ceiling($GOLDInthepocket)) & @CRLF
         $DebugMessage = $DebugMessage & "GOLD Moyen par run : " & formatNumber(Ceiling($GOLDMOY)) & @CRLF
         $DebugMessage = $DebugMessage & "GOLD Moyen par heure : " & formatNumber(Ceiling($GOLDMOYbyH)) & @CRLF
+
+		$DebugMessage = $DebugMessage & "DPS Constatés : " & formatNumber(Ceiling($AverageDps / 1000)) & " K " & @CRLF
 
         ;stats XP
         $DebugMessage = $DebugMessage & "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" & @CRLF
@@ -5388,8 +5504,9 @@ Func GoToTown()
 			_log("Disconnected dc1")
 			$disconnectcount += 1
 			Sleep(1000)
-			_randomclick(398, 349)
-			_randomclick(398, 349)
+			ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
+			sleep(50)
+			ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
 			Sleep(1000)
 			While Not (_onloginscreen() Or _inmenu())
 				Sleep(Random(80000, 15000))
@@ -5439,19 +5556,14 @@ Func TpRepairAndBack()
 EndFunc
 
 Func ClickOnStashTab($num)
-	if $num > 3 OR $num < 1 Then
-		_log("ERROR Impossible to open this tab from stash")
-		$num = 1
-	Endif
+        If Not IsNumber($num) Then Return SetError(1, 0, 0)
+        If $num > 3 Or $num < 1 Then
+                _log("ERROR Impossible to open this tab from stash")
+                Return SetError(2, 0, 0)
+        EndIf
+        ClickUI("Root.NormalLayer.stash_dialog_mainPage.tab_" & $num)
+EndFunc   ;==>ClickOnStashTab (lorenco)
 
-	if $num = 1 Then
-		ClickUI("Root.NormalLayer.stash_dialog_mainPage.tab_1")
-	elseif $num = 2 Then
-		ClickUI("Root.NormalLayer.stash_dialog_mainPage.tab_1")
-	else
-		ClickUI("Root.NormalLayer.stash_dialog_mainPage.tab_1")
-	EndIf
-EndFunc
 
 Func StashAndRepair()
 
@@ -6685,7 +6797,6 @@ Func maffmove($_x_aff,$_y_aff,$_z_aff,$x_mob,$y_mob)
 ;~ 					 GestSpellcast(0, 2, 0)
 					 if timerdiff($ignore_timer)>10000 then exitloop
 					 sleep(10)
-
 				  wend
 				  if timerdiff($ignore_timer)<30 Then
 					 $nbr_ignore=ubound($ignore_affix)
@@ -6729,6 +6840,8 @@ Func IterateFilterAffix()
 			   if (StringInStr($item[1],"spore") or StringInStr($item[1],"Plagued_endCloud") or StringInStr($item[1],"Poison")) then $item_affix_2D[$i][10] = $range_peste
 			   if StringInStr($item[1],"ArcaneEnchanted_petsweep") then $item_affix_2D[$i][10] = $range_arcane
 
+			   if StringInStr($item[1],"frozenPulse") then $item_affix_2D[$i][10] = $range_arcane
+
 ;~ 			   if $item_affix_2D[$i][10]-$item_affix_2D[$i][9]>0 then $ii=$ii+1
 
 			   $i += 1
@@ -6761,6 +6874,8 @@ $BanAffixList="poison_humanoid|"&$BanAffixList
 					(StringInStr($item[1],"desecrator") and $pv<=$Life_profa/100 ) or _
 					(StringInStr($item[1],"Plagued_endCloud") and $pv<=$Life_peste/100 )  or _
 					(StringInStr($item[1],"poison") and $pv<=$Life_poison/100 ) or _
+					(StringInStr($item[1],"Orbiter_Projectile") and $pv<=$Life_ice/100 )   or _
+					(StringInStr($item[1],"frozenPulse") and $pv<=$Life_ice/100 )   or _
 					(StringInStr($item[1],"molten_trail") and $pv<=$Life_lave/100 )) _
 					and checkfromlist($BanAffixList, $item[1]) = 0 then
                 Return True

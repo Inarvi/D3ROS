@@ -114,8 +114,8 @@ Func UsePath(ByRef $path)
 
 			If $Coords_RndY < 10 Then
 				$Coords_RndY = 10
-			ElseIf $Coords_RndY > 540 Then
-				$Coords_RndY = 540
+			ElseIf $Coords_RndY > 500 Then
+				$Coords_RndY = 500
 			EndIf
 			MouseMove($Coords_RndX, $Coords_RndY, 3) ;little randomisation
 
