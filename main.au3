@@ -361,7 +361,7 @@ Func Testing()
 	Global $gestion_affixe_loot = false
 	$banlist = ""
 	dim $items
-	_log("count -> " & $count)
+	;_log("count -> " & $count)
 	While iterateObjectsList($index, $offset, $count, $item)
 			_log("Ofs : " & $item[8]  & " - "  & $item[1] & " - Data 1 : " & $item[5] & " - Data 2 : " & $item[6] & " - Guid : " & $item[0])
 
@@ -433,9 +433,28 @@ MouseMove($Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2, 1)
 ;TakeWPV2(0)i
 
 ;Detect_Str_full_inventory()
-listui(1)
+;listui(1)
+
+;Repair()
+;Detect_Str_full_inventory()
+
+;StashAndRepair()
+;_log(fastcheckuiitemvisible("Root.NormalLayer.shop_dialog_mainPage.repair_dialog.RepairEquipped", 1, 124))
+
 ;enoughtPotions()
 ;ClickOnStashTab(1)
+
+;offsetlist()
+;_log("ETAT TP -> " &  _memoryRead( _memoryRead($_Myoffset + 0x1a4, $d3, "ptr") + 0x18, $d3, "int"))
+
+;_log(fastcheckuiitemactived("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139))
+;ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_in_town", 496)
+_log("c'est partit !")
+While NOT fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
+			sleep(200)
+		WEnd
+_log("trouvé")
+
 EndFunc   ;==>Testing ##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******###
 
 
@@ -444,7 +463,7 @@ EndFunc   ;==>Testing ##*******##*******##*******##*******##*******##*******##**
 ;###########################################################################
 ;###########################################################################
 ;###########################################################################
-;###########################################################################
+;################iiiiii###########################################################
 ;###########################################################################
 ;###########################################################################
 

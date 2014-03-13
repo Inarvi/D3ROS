@@ -431,7 +431,7 @@ Global $Barbarian_Skill_Table[22][8] = [ _
 						[$Barbarian_Bash,"Barbarian_Bash",0,"physical","","","",""], _
 						[$Barbarian_HammerOfTheAncients,"Barbarian_HammerOfTheAncients",0,"attack",20,"fury","",""], _
 						[$Barbarian_Cleave,"Barbarian_Cleave",0,"physical","","","",""], _
-						[$Barbarian_GroundStompEffect,"Barbarian_GroundStomp",12000,"physical","","","",""], _
+						[$Barbarian_GroundStomp,"Barbarian_GroundStomp",12000,"physical","","","",""], _
 						[$Barbarian_Rend,"Barbarian_Rend",4000,"attack",20,"fury","",10], _
 						[$Barbarian_Leap,"Barbarian_Leap",10000,"physical","","","",""], _
 						[$X1_Barbarian_AncientSpear,"Barbarian_AncientSpear",0,"attack","25","fury","",50], _
@@ -479,15 +479,16 @@ Global $DemonHunter_skill_Table[24][8] = [ _
 						[$DemonHunter_Vault, "DemonHunter_Vault", 3000, "life", 8, "discipline", 85, ""] _
 							]
 
-Global $Wizard_skill_Table[27][8] = [ _
+Global $Wizard_skill_Table[28][8] = [ _
 						[$Wizard_Blizzard, "Wizard_Blizzard", 2500, "attack", 40, "arcane", 100, 45], _
 						[$Wizard_DiamondSkin, "Wizard_DiamondSkin", 15000, "life", "", "", 35, ""], _
 						[$Wizard_EnergyArmor, "Wizard_EnergyArmor", 110000, "buff", 25, "arcane", "", ""], _
 						[$Wizard_Familiar, "Wizard_Familiar", 300000, "buff", 20, "arcane", "", ""], _
 						[$Wizard_MagicWeapon, "Wizard_MagicWeapon", 280000, "buff", 25, "arcane", "", ""], _
-						[$Wizard_SpectralBlade, "Wizard_SpectralBlade", "", "physical", "", "", 100, 45], _
+						[$Wizard_SpectralBlade, "Wizard_SpectralBlade", "", "physical", "", "", 100, 1], _
 						[$Wizard_ArcaneOrb, "Wizard_ArcaneOrb", "", "attack", 35, "arcane", 100, 45], _
 						[$Wizard_ArcaneTorrent, "Wizard_ArcaneTorrent", "", "attack", 16, "arcane", 100, 45], _
+						[$Wizard_Archon, "Wizard_Archon", "", "elite", "", "", "", ""], _
 						[$Wizard_Archon_DisintegrationWave, "Wizard_Archon_DisintegrationWave", "", "attack", 18, "arcane", 100, 45], _
 						[$Wizard_Archon_SlowTime, "Wizard_Archon_SlowTime", 15000, "life", "", "", 60, ""], _
 						[$Wizard_Archon_Teleport, "Wizard_Archon_Teleport", 15000, "life", "", "", 35, ""], _
@@ -507,4 +508,4 @@ Global $Wizard_skill_Table[27][8] = [ _
 						[$Wizard_StormArmor, "Wizard_StormArmor", 110000, "buff", 25, "arcane", "", ""], _
 						[$Wizard_Teleport, "Wizard_Teleport", 15000, "life", "", "", 35, ""], _
 						[$Wizard_WaveOfForce, "Wizard_WaveOfForce", 12000, "life", 25, "arcane", 35, ""] _
-							]
+						]

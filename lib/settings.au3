@@ -36,7 +36,7 @@ Global $a_time = 9000
 Global $g_time = 7500
 Global $SpecialmonsterList = "Goblin|brickhouse_|woodwraith_"
 Global $monsterList = "Beast_B|Goatman_M|Goatman_R|WitherMoth|Beast_A|Scavenger|zombie|Corpulent|Skeleton|QuillDemon|FleshPitFlyer|Succubus|Scorpion|azmodanBodyguard|succubus|ThousandPounder|Fallen|GoatMutant|demonFlyer_B|creepMob|Triune_|TriuneVesselActivated_|TriuneVessel|Triune_Summonable_|ConductorProxyMaster|sandWasp|TriuneCultist|SandShark|Lacuni"
-Global $BanmonsterList = "Skeleton_Archer_A_Unique_Ring_|Skeleton_A_Unique_Ring_|WD_ZombieDog|WD_wallOfZombies|DH_Companion"
+Global $BanmonsterList = "treasureGoblin_A_Slave|Skeleton_Archer_A_Unique_Ring_|Skeleton_A_Unique_Ring_|WD_ZombieDog|WD_wallOfZombies|DH_Companion|"
 Global $grabListFile = ""
 Global $Potions = "healthPotion_Mythic"
 Global $repairafterxxgames = Round(Random(4, 8))
@@ -203,7 +203,7 @@ Func writeConfigs($profilFile = "settings.ini", $creation = 0)
 ;~ 	IniWrite($profilFile, "Run info", "MaximumArcane", $MaximumArcane)
 ;~ 	IniWrite($profilFile, "Run info", "MaximumMana", $MaximumMana)
 
-	
+
 	IniWrite($profilFile, "Run info", "SpellOnLeft", $Skill_conf1[0])
 	IniWrite($profilFile, "Run info", "SpellDelayLeft", $Skill_conf1[1])
 	IniWrite($profilFile, "Run info", "SpellTypeLeft", $Skill_conf1[2])
@@ -245,12 +245,12 @@ Func writeConfigs($profilFile = "settings.ini", $creation = 0)
 	IniWrite($profilFile, "Run info", "SpellEnergyNeeds6", $Skill_conf6[3])
 	IniWrite($profilFile, "Run info", "SpellLife6", $Skill_conf6[4])
 	IniWrite($profilFile, "Run info", "SpellDistance6", $Skill_conf6[5])
-	
+
 	IniWrite($profilFile, "Run info", "Key1", $Key1)
 	IniWrite($profilFile, "Run info", "Key1", $Key2)
 	IniWrite($profilFile, "Run info", "Key1", $Key3)
 	IniWrite($profilFile, "Run info", "Key1", $Key4)
-	
+
 	IniWrite($profilFile, "Run info", "InventoryCheck", $InventoryCheck)
 
 	iniwrite($profilFile,"Run info","gestion_affixe",$gestion_affixe)
@@ -266,7 +266,7 @@ Func writeConfigs($profilFile = "settings.ini", $creation = 0)
     iniwrite($profilFile,"Run info","Life_Ice",$Life_Ice)
     iniwrite($profilFile,"Run info","Life_Poison",$Life_Poison)
     iniwrite($profilFile,"Run info","Life_Explo",$Life_Explo)
-	
+
 	iniWrite($profilFile,"Run info","Gest_affixe_ByClass", $Gest_affixe_ByClass)
 	;IniWrite($profilFile,"Run info","Act", $Act)
 	IniWrite($profilFile, "Run info", "Devmode", $Devmode)
@@ -377,12 +377,12 @@ Func loadConfigs($profilFile = "settings.ini", $creation = 0)
 	$Skill_conf6[3] = IniRead($profilFile, "Run info", "SpellEnergyNeeds4", $Skill_conf6[3])
 	$Skill_conf6[4] = IniRead($profilFile, "Run info", "SpellLife4", $Skill_conf6[4])
 	$Skill_conf6[5] = IniRead($profilFile, "Run info", "SpellDistance4", $Skill_conf6[5])
-	
+
 	$Key1 = IniRead($profilFile, "Run info", "Key1", $Key1)
 	$Key2 = IniRead($profilFile, "Run info", "Key2", $Key2)
 	$Key3 = IniRead($profilFile, "Run info", "Key3", $Key3)
 	$Key4 = IniRead($profilFile, "Run info", "Key4", $Key4)
-	
+
 	$BanAffixList=iniread($profilFile,"Run info","BanAffixList",$BanAffixList)
     $gestion_affixe=iniread($profilFile,"Run info","gestion_affixe",$gestion_affixe)
     $gestion_affixe_loot=iniread($profilFile,"Run info","gestion_affixe_loot",$gestion_affixe_loot)
@@ -396,11 +396,11 @@ Func loadConfigs($profilFile = "settings.ini", $creation = 0)
     $Life_Poison=iniread($profilFile,"Run info","Life_Poison",$Life_Poison)
     $Life_Spore=iniread($profilFile,"Run info","Life_Spore",$Life_Spore)
     $Life_Mine=iniread($profilFile,"Run info","Life_Mine",$Life_Mine)
-	
+
 	$Gest_affixe_ByClass=iniread($profilFile,"Run info","Gest_affixe_ByClass",$Gest_affixe_ByClass)
-	
+
 	$InventoryCheck = IniRead($profilFile, "Run info", "InventoryCheck", $InventoryCheck)
-	
+
 	;$Act = IniRead($profilFile,"Run info","Act", $Act)
 	$Devmode = IniRead($profilFile, "Run info", "Devmode", $Devmode)
 

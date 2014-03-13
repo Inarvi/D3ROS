@@ -38,9 +38,18 @@ Func UsePath(ByRef $path)
 		;                       EndIf
 		;               EndIf
 
-		If revive($path) Then
+
+		;If revive($path) Then
+		;	Return
+		;EndIf
+		$res = revive($path)
+		If $res = 2 Then
 			Return
-		EndIf
+		ElseIf $res = 3 Then
+			$GameFailed = 1
+		EndIF
+
+
 
 		GestSpellcast(0, 0, 0)
 
@@ -48,6 +57,7 @@ Func UsePath(ByRef $path)
 			$GameFailed = 1
 			ExitLoop
 		EndIf
+
 		If TimerDiff($TimeOut) > 175000 Then
 			_log("UsePath Timed out ! ! ! ")
 			$GameFailed = 1

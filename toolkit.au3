@@ -46,6 +46,7 @@ EndFunc   ;==>_HighPrecisionSleep
 #include <Array.au3>
 #include "lib\constants.au3"
 #include "lib\FTP.au3"
+#include "lib\ExpTableConst.au3"
 
 ;;--------------------------------------------------------------------------------
 ;;      Initialize MouseCoords
@@ -176,11 +177,27 @@ Func ListUi($Visible=0)
 
 EndFunc
 
-Func ClickUI($name)
-	$result = GetOfsUI($name, 1)
-	if $result = false Then return false
+Func ClickUI($name, $bucket=-1)
+
+	if $bucket = -1 Then ;no bucket given slow method
+		$result = GetOfsUI($name, 1)
+	Else ;bucket given, fast method
+		$result = GetOfsFastUI($name, $bucket)
+	EndIf
+
+
+	if $result = false Then
+		_log("(ClickUI) UI DOESNT EXIT ! -> " & $name)
+		return false
+	EndIf
 
 	Dim $Point = GetPositionUI($result)
+
+	while $Point[0] = 0 AND $Point[1] = 0
+		$Point = GetPositionUI($result)
+		sleep(500)
+	WEnd
+
 	Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
 
 	MouseClick("left", $Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2)
@@ -221,7 +238,6 @@ Func fastcheckuiitemvisible($valuetocheckfor, $visibility, $bucket)
 	while $UiPtr <> 0
 		$nPtr = _memoryread($UiPtr + $Ofs_UI_nPtr, $d3, "ptr")
 		$Visible = BitAND(_memoryread($nPtr + $Ofs_UI_Visible, $d3, "ptr"), 0x4)
-
 		if $Visibility = 1 AND $Visible = 4 Then
 			$Name = BinaryToString(_memoryread($nPtr + $Ofs_UI_Name, $d3, "byte[1024]"), 4)
 			If StringInStr($name, $valuetocheckfor) Then
@@ -238,6 +254,39 @@ Func fastcheckuiitemvisible($valuetocheckfor, $visibility, $bucket)
 	WEnd
 	return false
 Endfunc
+
+Func GetOfsFastUI($valuetocheckfor, $bucket)
+
+	$UiPtr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
+	$UiPtr2 = _memoryread($UiPtr1 + $Ofs_UI_A, $d3, "ptr")
+	$UiPtr3 = _memoryread($UiPtr2 + $Ofs_UI_B, $d3, "ptr")
+	$BuckitOfs = _memoryread($UiPtr3 + $Ofs_UI_C, $d3, "ptr")
+
+	$UiPtr = _memoryread($BuckitOfs + ($bucket * 0x4), $d3, "ptr")
+
+	while $UiPtr <> 0
+		$nPtr = _memoryread($UiPtr + $Ofs_UI_nPtr, $d3, "ptr")
+			$Name = BinaryToString(_memoryread($nPtr + $Ofs_UI_Name, $d3, "byte[1024]"), 4)
+			If StringInStr($name, $valuetocheckfor) Then
+				return $nPtr
+			EndIf
+		$UiPtr = _memoryread($UiPtr, $d3, "ptr")
+	WEnd
+
+	return false
+EndFunc
+
+Func fastcheckuiitemactived($valuetocheckfor, $bucket)
+	$uiOfs = GetOfsFastUI($valuetocheckfor, $bucket)
+	$Enabled = Mod(_memoryread($uiOfs + 0xc5c, $d3, "int"), 2)
+	_log($Enabled)
+	if $Enabled = 1 Then
+		return True
+	Else
+		return false
+	EndIF
+	;_log($uiOfs & " - " & _memoryread($uiOfs + 0xc5c, $d3, "ptr") & " - " & $Enabled)
+EndFunc
 
 Func GetTextUI($bucket, $valuetocheckfor)
 	$UiPtr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
@@ -346,38 +395,6 @@ _log("$Name : " & $Name )
 	return false
 EndFunc
 
-;;--------------------------------------------------------------------------------
-; Function:                     fastCheckuiValue()
-; Description: Get value of an UI element
-;
-; Note(s): Return checked UI value or return Fasle
-;;--------------------------------------------------------------------------------
-Func fastCheckuiValue($valuetocheckfor, $visibility, $bucket)
-	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 2420, $d3, "ptr")
-	$ptr3 = _memoryread($ptr2 + 0, $d3, "ptr")
-	$ofs_uielements = _memoryread($ptr3 + 8, $d3, "ptr")
-	$uielementpointer = _memoryread($ofs_uielements + 4 * $bucket, $d3, "ptr")
-	While $uielementpointer <> 0
-		$npnt = _memoryread($uielementpointer + 528, $d3, "ptr")
-		$name = BinaryToString(_memoryread($npnt + 56, $d3, "byte[1024]"), 4)
-		If StringInStr($name, $valuetocheckfor) Then
-			If _memoryread($npnt + 40, $d3, "int") = $visibility Then
-				$uitextptr = _memoryread($npnt + 0xAE0, $d3, "ptr")
-				$uitext = BinaryToString(_memoryread($uitextptr, $d3, "byte[1024]"), 4)
-				; ConsoleWrite(@CRLF & $uitext)
-				Return $uitext
-
-			Else
-				_log($valuetocheckfor & " is invisible")
-				Return False
-			EndIf
-		EndIf
-		$uielementpointer = _memoryread($uielementpointer, $d3, "ptr")
-	WEnd
-	_log($valuetocheckfor & " not found")
-	Return False
-EndFunc   ;==>fastCheckuiValue
 
 
 Func _playerdead()
@@ -775,6 +792,7 @@ EndFunc   ;==>GetAct
 ;;--------------------------------------------------------------------------------
 ;;     Adapt repair tab aaccording to MP act and diff
 ;;--------------------------------------------------------------------------------
+#cs
 Func GetRepairTab()
 	GetMonsterPow2()
 	GetDifficulty()
@@ -799,7 +817,7 @@ Func GetRepairTab()
 	_log("RepairTab : " & $RepairTab & " ---> MP : " & $MP & " GameDiff : " & $GameDifficulty)
 
 EndFunc   ;==>GetRepairTab
-
+#ce
 
 ;;--------------------------------------------------------------------------------
 ;;     Find MP MF handicap
@@ -817,6 +835,7 @@ EndFunc   ;==>GetMonsterPow
 ;;	   Get it Via UI element
 ;;
 ;;--------------------------------------------------------------------------------
+#cs
 Func GetMonsterPow2()
 
 	$GetMonsterPow2 = fastCheckuiValue('Root.NormalLayer.minimap_dialog_backgroundScreen.minimap_dialog_pve.clock', 1, 28)
@@ -829,7 +848,7 @@ Func GetMonsterPow2()
 	_log("Power monster : " & $MP)
 	;_log("Power monster : " & $GetMonsterPow2)
 EndFunc   ;==>GetMonsterPow2
-
+#ce
 
 ;;--------------------------------------------------------------------------------
 ;;     Find Difficulty from vendor
@@ -2439,17 +2458,16 @@ Func iterateObjectsList(ByRef $index, ByRef $offset, ByRef $count, ByRef $item)
 	EndIf
 
 	$index += 1
-
-
 	$error = 0
 
 	; 0x1d4 -> Data 3
 	; 0x230 -> Data 2
 	; 0x260 -> Data 1
 
-	if $index > $count Then
-		return true
-	EndIF
+
+	;if $index > $count Then
+	;	return true
+	;EndIF
 
 	Do
 	Local $iterateObjectsListStruct = DllStructCreate("int;char[128];byte[4];ptr;byte[40];float;float;float;byte[276];int;byte[88];int;byte[44];int")
@@ -2457,6 +2475,7 @@ Func iterateObjectsList(ByRef $index, ByRef $offset, ByRef $count, ByRef $item)
 	DllCall($d3[0], 'int', 'ReadProcessMemory', 'int', $d3[1], 'int', $offset, 'ptr', DllStructGetPtr($iterateObjectsListStruct), 'int', DllStructGetSize($iterateObjectsListStruct), 'int', '')
 
 
+#cs
 		if DllStructGetData($iterateObjectsListStruct, 1)  = -1 OR DllStructGetData($iterateObjectsListStruct, 4) = -1 Then
 			$error = 1
 			$index += 1
@@ -2470,13 +2489,13 @@ Func iterateObjectsList(ByRef $index, ByRef $offset, ByRef $count, ByRef $item)
 
 			ContinueLoop
 		Else
-
 			if $index > $count + 1 Then
 				return false
 			EndIF
 
 			$error = 0
 		EndIF
+#ce
 
 		$item[0] = DllStructGetData($iterateObjectsListStruct, 4) ; Guid
 		$item[1] = DllStructGetData($iterateObjectsListStruct, 2) ; Name
@@ -3335,18 +3354,18 @@ Func checkFiltreFromtable($table, $name, $CurrentIdAttrib)
 			If Not $table[$i][3] = 0 Then
 				$filtre_buff = $table[$i][3]
 				$tab_filter = StringSplit($table[$i][4], "|", 2)
-				_log("filtre avant : " & $filtre_buff, 1)
+				;_log("filtre avant : " & $filtre_buff, 1)
 				For $y = 0 To UBound($tab_filter) - 1
 					$const_result = _filter2attrib($CurrentIdAttrib, $tab_filter[$y])
 					$filtre_buff = StringReplace($filtre_buff, $tab_filter[$y], $const_result, 0, 2)
 					$filtre_buff = StringReplace($filtre_buff, ":", ">=", 0, 2)
 				Next
-				_log("filtre apres : " & $filtre_buff, 1)
+				;_log("filtre apres : " & $filtre_buff)
 				If Execute($filtre_buff) Then
-					_log("execute donne true")
+					;_log("execute donne true")
 					Return True
 				Else
-					_log("execute donne false")
+					;_log("execute donne false")
 					Return False
 				EndIf
 			EndIf
@@ -3396,7 +3415,7 @@ Func TakeWPV2($WPNumber=0)
 		$NameUI = "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry " & $WPNumber & ".LayoutRoot.Name"
 	EndIf
 
-	$WayPointEntity = "Waypoint-"
+	$WayPointEntity = "Waypoint"
 	$WayPointFound = False
 
 	Local $index, $offset, $count, $item[10], $maxRange = 80
@@ -3427,8 +3446,8 @@ Func TakeWPV2($WPNumber=0)
 				If $wptry <= 6 Then
 					_log('Fail to open wp')
 					$wptry += 1
-					Sleep(500)
 					OpenWp($item)
+					Sleep(500)
 				EndIf
 				If $wptry > 6 Then
 					$GameFailed = 1
@@ -3580,7 +3599,7 @@ Func _resumegame()
 
 
 	$Try_ResumeGame += 1
-	Sleep(4000)
+	Sleep(7000)
 EndFunc   ;==>_resumegame 2.0
 
 Func _logind3()
@@ -3610,6 +3629,7 @@ Func _leavegame()
 	If _ingame() Then
 		_log("Leave Game")
 		Send("{SPACE}") ; to make sure everything is closed
+		sleep(100)
 		Send("{ESCAPE}")
 		Sleep(Random(200, 300, 1))
 		While _escmenu() = False
@@ -3617,24 +3637,50 @@ Func _leavegame()
 			Sleep(Random(200, 300, 1))
 		WEnd
 		;_randomclick(134, 264)
-		ClickUI("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame")
+
+		While NOT fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
+			sleep(50)
+			_log("Menu Open but btn leaveGame Doesnt Exit yet")
+		WEnd
+
+		ClickUI("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1644)
+
 		Sleep(Random(500, 1000, 1))
 		_log("Leave Game Done")
 	EndIf
 EndFunc   ;==>_leavegame
 
+
+
+Global $VendorTabRepair = ""
+Global $VendorTabSell = 0
+
 ;;--------------------------------------------------------------------------------
 ;;      Repair()
 ;;--------------------------------------------------------------------------------
 Func Repair()
+	GetAct()
+
+Switch $Act
+        Case 1
+                MoveToPos(2914.19946289063, 2802.09716796875, 24.0453300476074,1,25)
+        Case 2
+                ;do nothing act 2
+        Case 3 To 4
+                ;do nothing act 3-4
+EndSwitch
+
 	InteractByActorName($RepairVendor)
+
 	Sleep(700)
 	Local $vendortry = 0
 	While _checkVendoropen() = False
 		If $vendortry <= 4 Then
 			_log('Fail to open vendor')
 			$vendortry = $vendortry + 1
+
 			InteractByActorName($RepairVendor)
+
 		EndIf
 		If $vendortry > 4 Then
 			Send("{PRINTSCREEN}")
@@ -3646,16 +3692,32 @@ Func Repair()
 			ExitLoop
 		EndIf
 	WEnd
-	GetRepairTab()
 
-	$coord = UiRatio(290, 130 + ($RepairTab * 70))
-	MouseClick("left", $coord[0], $coord[1], 1, 3) ; Repair tab
+	DefineVendorTab()
+
+	ClickUI("Root.NormalLayer.shop_dialog_mainPage.tab_" & $VendorTabRepair)
 	Sleep(100)
-	$coord = UiRatio(150, 330)
-	MouseClick("left", $coord[0], $coord[1], 1, 3) ; Repair Button
+	ClickUI("Root.NormalLayer.shop_dialog_mainPage.repair_dialog.RepairEquipped")
 	Sleep(100)
-	Send("{SPACE}")
 EndFunc   ;==>Repair
+
+
+
+Func DefineVendorTab()
+
+	if $VendorTabRepair = "" Then ;On a jamais insctancier la recherche des tables
+
+		if fastcheckuiitemvisible("Root.NormalLayer.shop_dialog_mainPage.tab_4", 1, 1984) Then
+			$VendorTabRepair = 3
+			_log("Definition of Repair Tab to TAB 3")
+		Else
+			$VendorTabRepair = 2
+			_log("Definition of Repair Tab to TAB 2")
+		EndIf
+
+	EndIf
+
+EndFunc
 
 ;;================================================================================
 ; Function:			GetDistance($_x,$_y,$_z)
@@ -4221,111 +4283,6 @@ Func StatsDisplay()
 
         ;Xp nécessaire pour passer un niveau de paragon
 
-        If $Totalruns = 1 Then
-                Global $level[1001]
-                $level[1] = 7200000
-                $level[2] = 8640000
-                $level[3] = 10080000
-                $level[4] = 11520000
-                $level[5] = 12960000
-                $level[6] = 14400000
-                $level[7] = 15840000
-                $level[8] = 17280000
-                $level[9] = 18720000
-                $level[10] = 20160000
-                $level[11] = 21600000
-                $level[12] = 23040000
-                $level[13] = 24480000
-                $level[14] = 25920000
-                $level[15] = 27360000
-                $level[16] = 28800000
-                $level[17] = 30240000
-                $level[18] = 31680000
-                $level[19] = 33120000
-                $level[20] = 34560000
-                $level[21] = 36000000
-                $level[22] = 37440000
-                $level[23] = 38880000
-                $level[24] = 40320000
-                $level[25] = 41760000
-                $level[26] = 43200000
-                $level[27] = 44640000
-                $level[28] = 46080000
-                $level[29] = 47520000
-                $level[30] = 48960000
-                $level[31] = 50400000
-                $level[32] = 51840000
-                $level[33] = 53280000
-                $level[34] = 54720000
-                $level[35] = 56160000
-                $level[36] = 57600000
-                $level[37] = 59040000
-                $level[38] = 60480000
-                $level[39] = 61920000
-                $level[40] = 63360000
-                $level[41] = 64800000
-                $level[42] = 66240000
-                $level[43] = 67680000
-                $level[44] = 69120000
-                $level[45] = 70560000
-                $level[46] = 72000000
-                $level[47] = 73440000
-                $level[48] = 74880000
-                $level[49] = 76320000
-                $level[50] = 77760000
-                $level[51] = 79200000
-                $level[52] = 80640000
-                $level[53] = 82080000
-                $level[54] = 83520000
-                $level[55] = 84960000
-                $level[56] = 86400000
-                $level[57] = 87840000
-                $level[58] = 89280000
-                $level[59] = 90720000
-                $level[60] = 92160000
-                $level[61] = 95040000
-                $level[62] = 97920000
-                $level[63] = 100800000
-                $level[64] = 103680000
-                $level[65] = 106560000
-                $level[66] = 109440000
-                $level[67] = 112320000
-                $level[68] = 115200000
-                $level[69] = 118080000
-                $level[70] = 120960000
-                $level[71] = 126000000
-                $level[72] = 131040000
-                $level[73] = 136080000
-                $level[74] = 141120000
-                $level[75] = 146160000
-                $level[76] = 151200000
-                $level[77] = 156240000
-                $level[78] = 161280000
-                $level[79] = 166320000
-                $level[80] = 171360000
-                $level[81] = 177840000
-                $level[82] = 184320000
-                $level[83] = 190800000
-                $level[84] = 197280000
-                $level[85] = 203760000
-                $level[86] = 210240000
-                $level[87] = 216720000
-                $level[88] = 223200000
-                $level[89] = 229680000
-                $level[90] = 236160000
-                $level[91] = 244800000
-                $level[92] = 253440000
-                $level[93] = 262080000
-                $level[94] = 270720000
-                $level[95] = 279360000
-                $level[96] = 288000000
-                $level[97] = 296640000
-                $level[98] = 305280000
-                $level[99] = 313920000
-                $level[100] = 322560000
-                $level[101] = 0
-
-        EndIf
 
         If $Totalruns = 1 Then
 
@@ -4650,7 +4607,7 @@ Func GetAttributeOfs($idAttrib, $attrib)
 		While _memoryread($AttribEntry + 0x4, $d3, "ptr") <> $attrib
 			$AttribEntry = _memoryread($AttribEntry, $d3, "ptr")
 			If $AttribEntry = 0 Then
-				_log("AttribEntry = 0")
+				;_log("AttribEntry = 0")
 				Return -1
 			EndIf
 		WEnd
@@ -5455,21 +5412,6 @@ Func TpRepairAndBack()
 
 
 	While Not _intown()
-		#cs
-		$grabskip = 1
-		Attack()
-		$grabskip = 0
-		Sleep(500)
-		$CurrentLoc = getcurrentpos()
-		MoveToPos($CurrentLoc[0] + 5, $CurrentLoc[1] + 5, $CurrentLoc[2], 0, 6)
-		If _playerdead() = False Then
-			_townportal()
-		Else
-			Return False
-			ExitLoop
-		EndIf
-		#ce
-
 		if Not _TownPortalnew() Then
 			$GameFailed=1
 			Return False
@@ -5514,6 +5456,7 @@ Func StashAndRepair()
 	_log("Func StashAndRepair")
 	$RepairORsell += 1
 	$item_to_stash = 0
+	$SkippedMove = 0
 
 	While _checkInventoryopen() = False
 		Send("i")
@@ -5564,17 +5507,6 @@ Func StashAndRepair()
 			InventoryMove($items[$ToStash[$i]][0], $items[$ToStash[$i]][1])
 			Sleep(Random(100, 500))
 
-			If $items[$ToStash[$i]][3] >= 6 Then
-				#cs	$item_name = fastCheckuiValue("Root.TopLayer.item 2.stack.top_wrapper.stack.name", 1, 354)
-					$item_stats = fastCheckuiValue("Root.TopLayer.item 2.stack.frame body.stack.stats", 1, 827)
-					$item_to_stash += 1
-					;_log("name file -> " & $ftpfilename)
-
-					Xml_To_Str(xml_to_item($item_name, $item_stats), $ftpfilename)
-				#ce
-
-			EndIf
-
 			MouseClick('Right')
 			Sleep(Random(50, 200))
 			If Detect_UI_error(1) Then
@@ -5599,9 +5531,6 @@ Func StashAndRepair()
 			EndIf
 		Next
 
-		;If $item_to_stash > 0 Then
-			;Ftp_Upload_To_Xml($ftpfilename)
-		;EndIf
 
 		Sleep(Random(50, 100))
 		Send("{SPACE}")
@@ -5622,45 +5551,20 @@ Func StashAndRepair()
 	Sleep(Random(100, 200))
 	Sleep(Random(500, 1000))
 
-#cs
-	If $unidentified = true Then
-			Take_BookOfCain()
-		Endif
-#ce
+	Repair()
 
-		Repair()
-	Sleep(Random(100, 200))
-	Send("{SPACE}")
-	Sleep(Random(100, 200))
+
 
 
 	;Trash
 	$ToTrash = _ArrayFindAll($items, "Trash", 0, 0, 0, 1, 2)
-	If $ToTrash <> -1 Then
-		Sleep(Random(100, 200))
-		Send("{SPACE}")
-		Sleep(500)
-		InteractByActorName($RepairVendor)
-		Sleep(700)
-		Local $vendortry = 0
-		While _checkVendoropen() = False
-			If $vendortry <= 5 Then
-				_log('Fail to open vendor')
-				$vendortry = $vendortry + 1
-				InteractByActorName($RepairVendor)
 
+	If not @error Then
 
-			Else
-				Send("{PRINTSCREEN}")
-				Sleep(200)
-				_log('Failed to open Vendor after 5 try')
-				WinSetOnTop("Diablo III", "", 0)
-				MsgBox(0, "Impossible d'ouvrir le vendeur :", "SVP, veuillez reporter ce problème sur le forum. Erreur : v002 ")
-				Terminate()
-				ExitLoop
-			EndIf
-		WEnd
+		ClickUI("Root.NormalLayer.shop_dialog_mainPage.tab_0")
+
 		CheckWindowD3Size()
+
 		For $i = 0 To UBound($ToTrash) - 1
 			InventoryMove($items[$ToTrash[$i]][0], $items[$ToTrash[$i]][1])
 			Sleep(Random(100, 500))
@@ -5678,8 +5582,12 @@ Func StashAndRepair()
 			antiidle()
 		EndIf
 		;****************************************************************
-
 	EndIf
+
+	Sleep(Random(100, 200))
+	Send("{SPACE}")
+	Sleep(Random(100, 200))
+
 EndFunc   ;==>StashAndRepair
 
 
@@ -6541,7 +6449,7 @@ $compt=0
 
 			_log("enclenchement fastCheckui de la barre de loading")
 
-			while fastcheckuiitemvisible("Root.NormalLayer.game_dialog_backgroundScreen.loopinganimmeter.progressBar", 1, 996)
+			while fastcheckuiitemvisible("Root.NormalLayer.game_dialog_backgroundScreen.loopinganimmeter", 1, 1068)
 				if $compt_while = 0 Then
 					_log("enclenchement du timer")
 					$timer = timerinit()
@@ -6864,10 +6772,10 @@ $BanAffixList="poison_humanoid|"&$BanAffixList
 
  Func Take_BookOfCain()
 
-	 If _checkInventoryopen() = true Then
-        Send("i")
-        Sleep(150)
-	 Endif
+	Send("{SPACE}")
+	sleep(200)
+	Send("{SPACE}")
+	sleep(50)
 
 	Switch $Act
 			Case 1
@@ -6880,6 +6788,7 @@ $BanAffixList="poison_humanoid|"&$BanAffixList
 
 
         InteractByActorName("All_Book_Of_Cain")
+
         While NOT fastcheckuiitemvisible("Root.NormalLayer.game_dialog_backgroundScreen.loopinganimmeter", 1, 1068) AND NOT Detect_UI_error(3)
                 ;_log("Ui : " & fastcheckuiitemvisible("Root.NormalLayer.game_dialog_backgroundScreen.loopinganimmeter", 1, 1512) & " Error : " &  fastcheckuiitemvisible("Root.TopLayer.error_notify.error_text", 1, 1185))
                 _log("tour boucle")
@@ -6890,4 +6799,19 @@ $BanAffixList="poison_humanoid|"&$BanAffixList
         While fastcheckuiitemvisible("Root.NormalLayer.game_dialog_backgroundScreen.loopinganimmeter", 1, 1068)
                 sleep(50)
         Wend
+	EndFunc
+
+Func IsTeleport()
+	if _memoryRead( _memoryRead($_Myoffset + 0x1a4, $d3, "ptr") + 0x18, $d3, "int") = 31 Then
+		return true
+	EndIf
+
+	return false
 EndFunc
+
+Func GameState()
+	;1 // In Game
+	;0 // Loading Screen
+	;5 // Menu
+	;return _memoryRead(_memoryRead($ObjManStorage ,$d3, "ptr") + 0x900, $d3, "ptr")
+Endfunc

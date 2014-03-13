@@ -54,7 +54,7 @@ Func _playerdead_revive()
 			Return False
 		EndIf
 		$playerdeadlookfor = "NormalLayer.deathmenu_dialog"
-		$return = fastcheckuiitemvisible($playerdeadlookfor, 1, 969)
+		$return = fastcheckuiitemvisible($playerdeadlookfor, 1, 793)
 		Return $return
 	EndIf
 	Return False
@@ -67,25 +67,48 @@ Func init_sequence()
 EndFunc   ;==>init_sequence
 
 Func revive(ByRef $path)
+
+;Return 0 -> Pas Mort
+;Return 1 -> Revive At Corp
+;Return 2 -> Revive On Last CheckPoint
+;Return 3 -> Trop de Res on return ville puis leave
+
+	;VERIFIER QUE LE STUFF EST PAS JAUNE OU ROUGE
+
 	If _playerdead_revive() Then
 		MouseUp("middle")
 		$nb_die_t = $nb_die_t + 1
 		$Res_compt = $Res_compt + 1
 		_log("You are dead, max :" & $rdn_die_t - $nb_die_t & " more death allowed")
-		If $nb_die_t <= $rdn_die_t Then
+		If $nb_die_t <= $rdn_die_t AND NOT _checkRepair() Then
+
 			Sleep(Random(5000, 6000))
-			MouseClick("left", 400, 420, 1, 6)
-			;400,375 = resuiciter sur le cadavre
-			;400,420 = resuiciter
-			;400,468 = resuiciter town
-			Sleep(Random(750, 1000))
-			bloc_sequence($path, 1)
-			Return True ;on res
+
+			if NOT _checkRepair() Then
+				if fastcheckuiitemactived("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139) Then
+					ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139)
+					_log("Res At Corp")
+					Sleep(Random(6000, 7000))
+					Return 1
+				Else ;On ne peut pas revive sur le corp
+					ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_checkpoint", 820)
+					_log("Res At LAst CheckPoint")
+					Sleep(Random(750, 1000))
+					bloc_sequence($path, 1)
+					Return 2 ;on res
+				EndIf
+			EndIF
+
 		Else
-			_log("You have reached the max number of revive : " & $rdn_die_t)
+
+			_log("You have reached the max number of revive : " & $rdn_die_t & " Or your stuff is destroy")
+			Sleep(Random(5000, 6000))
+			ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_in_town", 496)
+			sleep(4000)
+			Return 3
 		EndIf
 	EndIf
-	Return False
+	Return 0
 EndFunc   ;==>revive
 
 Func reverse_arr(ByRef $arr_MTP)

@@ -1,9 +1,31 @@
+Mise à jour 8.2c le 09/03/14
+
+Correction func leavegame
+Correction grabliste
+Ne devrais plus louper de monstres
+
+###########################################################################################################
+Mise à jour 8.2b le 08/03/14
+
+Correction du click sur la fenetre des points paragon
+Correction blocage livre de cain
+Correction blocage Act 1
+Refonte de la fonction resurection
+Grab les plans légendaires
+Correction sur la fonction Téléporte
+
+###########################################################################################################
+Mise à jour 8.2a le 06/03/14
+Correction de quelques Bugs
+
+###########################################################################################################
 Mise à jour 8.2 le 05/03/14
 Compatible avec le dernier patch de diablo 3 ROS 2.0.2
 
 Nouvelle fonction Func ClickUI($name) -> click sur l'UI indiqué
 Nouvelle fonction Func TakeWPV2($WPNumber=0) -> take the wp X (exemple for sequence file : TakeWP=4)
 Lors du premier lancement, le temps d'initialisation peut prendre entre 10 et 40 secondes.
+
 
 ###########################################################################################################
 Mise à jour 8.0a le 15/05/13
