@@ -28,6 +28,12 @@ Global $MonsterRefresh = "True"
 Global $ItemRefresh = "True"
 Global $MonsterPriority = "False"
 Global $Unidentified = "false"
+Global $MouseClickSet = "middle"
+
+Global $QualityLevel = ""
+Global $Salvage = ""
+Global $SalvageQualiteitem = ""
+Global $BlacksmithSalvage = "Blacksmith_RepairShortcut"
 
 Global $profilFile = "settings.ini"
 Global $a_range = Round(Random(55, 60))
@@ -36,7 +42,7 @@ Global $a_time = 9000
 Global $g_time = 7500
 Global $SpecialmonsterList = "Goblin|brickhouse_|woodwraith_"
 Global $monsterList = "Beast_B|Goatman_M|Goatman_R|WitherMoth|Beast_A|Scavenger|zombie|Corpulent|Skeleton|QuillDemon|FleshPitFlyer|Succubus|Scorpion|azmodanBodyguard|succubus|ThousandPounder|Fallen|GoatMutant|demonFlyer_B|creepMob|Triune_|TriuneVesselActivated_|TriuneVessel|Triune_Summonable_|ConductorProxyMaster|sandWasp|TriuneCultist|SandShark|Lacuni"
-Global $BanmonsterList = "treasureGoblin_A_Slave|Skeleton_Archer_A_Unique_Ring_|Skeleton_A_Unique_Ring_|WD_ZombieDog|WD_wallOfZombies|DH_Companion|"
+Global $BanmonsterList = "treasureGoblin_A_Slave|Skeleton_Archer_A_Unique_Ring_|Skeleton_A_Unique_Ring_|WD_ZombieDog|WD_wallOfZombies|DH_Companion|FallenChampion_ItemPassive|"
 Global $grabListFile = ""
 Global $Potions = "healthPotion_Mythic"
 Global $repairafterxxgames = Round(Random(4, 8))
@@ -154,6 +160,10 @@ Init_grablistFile()
 Init_GrabListTab()
 
 Func writeConfigs($profilFile = "settings.ini", $creation = 0)
+	IniWrite($profilFile, "Run info", "QualiteItem", $QualityLevel)
+	IniWrite($profilFile, "Run info", "Salvage", $Salvage)
+	IniWrite($profilFile, "Run info", "SalvageQualiteItem", $SalvageQualiteitem)
+	IniWrite($profilFile, "Run info", "Mouse", $MouseClickSet)
 	IniWrite($profilFile, "Run info", "SequenceFile", $File_Sequence)
 	IniWrite($profilFile, "Run info", "UsePath", $UsePath)
 	IniWrite($profilFile, "Run info", "ResActivated", $ResActivated)
@@ -266,6 +276,7 @@ Func writeConfigs($profilFile = "settings.ini", $creation = 0)
     iniwrite($profilFile,"Run info","Life_Ice",$Life_Ice)
     iniwrite($profilFile,"Run info","Life_Poison",$Life_Poison)
     iniwrite($profilFile,"Run info","Life_Explo",$Life_Explo)
+	iniwrite($profilFile, "Run info", "Hero_Axe_Z", $Hero_Axe_Z)
 
 	iniWrite($profilFile,"Run info","Gest_affixe_ByClass", $Gest_affixe_ByClass)
 	;IniWrite($profilFile,"Run info","Act", $Act)
@@ -287,6 +298,11 @@ Func loadConfigs($profilFile = "settings.ini", $creation = 0)
 	$ftpfilename = IniRead($profilFile, "Account info", "ftpfilename", $ftpfilename)
 
 	;; Run info
+	$MouseClickSet = IniRead($profilFile, "Run info", "Mouse", $MouseClickSet)
+	$QualityLevel = IniRead($profilFile, "Run info", "QualiteItem", $QualityLevel)
+	$SalvageQualiteitem = IniRead($profilFile, "Run info", "SalvageQualiteItem", $SalvageQualiteitem)
+	$Salvage = IniRead($profilFile, "Run info", "Salvage", $Salvage)
+	$Hero_Axe_Z = IniRead($profilFile, "Run info", "Hero_Axe_Z", $Hero_Axe_Z)
 	$monsterList = IniRead($profilFile, "Run info", "monsterList", $monsterList)
 	$SpecialmonsterList = IniRead($profilFile, "Run info", "SpecialmonsterList", $SpecialmonsterList)
 	$grabListFile = IniRead($profilFile, "Run info", "grabListFile", $grabListFile)

@@ -11,7 +11,6 @@ If $checkx64 = 1 Then
 	Terminate()
 EndIf
 
-
 $icon = @ScriptDir & "\lib\ico\icon.ico"
 TraySetIcon($icon)
 
@@ -27,6 +26,7 @@ Opt("MouseCoordMode", 2) ;1=absolute, 0=relative, 2=client
 ;;      Initialize some Globals
 ;;--------------------------------------------------------------------------------
 
+Global $D3Interop
 
 Global $GameOverTime, $GameFailed, $ClickToMoveToggle, $d3, $Step, $a_range, $ResActivated, _
 		$nb_die_t, $rdn_die_t, $ResLife, $Res_compt, $UsePath, $BanmonsterList, $File_Sequence, $TakeShrines
@@ -36,7 +36,7 @@ Global $Byte_NoItem_Identify, $Xp_Moy_Hrs, $ofs_objectmanager, $_MyGuid, $ofs_Lo
 		$ofs_ActorDef, $ofs_MonsterDef, $_ofs_FileMonster_MonsterType, $_ofs_FileMonster_MonsterRace, _
 		$_ofs_FileMonster_LevelNormal, $_ofs_FileMonster_LevelNightmare, $_ofs_FileMonster_LevelHell, _
 		$_ofs_FileMonster_LevelInferno, $_defptr, $_defcount, $_deflink, $allSNOitems, $grablist, _
-		$Byte_Full_Inventory[2], $Byte_Full_Stash[2], $Byte_Boss_TpDeny[2]
+		$Byte_Full_Inventory[2], $Byte_Full_Stash[2], $Byte_Boss_TpDeny[2],$CurrentLoc
 
 
 Global $AverageDps
@@ -44,8 +44,9 @@ Global $NbMobsKilled
 $AverageDps=0 ; DPS constates
 $NbMobsKilled=1 ; Nombre de Mobs croisés
 
-
+Global $BanTableActor = ""
 Global $Count_ACD = 0
+Global $Hero_Axe_Z = 10
 Global $GetACD
 Global $IgnoreItemList = ""
 Global $nameCharacter
@@ -86,7 +87,7 @@ Local $posd3 = WinGetPos("Diablo III")
 Global $grabskip = 0
 Global $maxhp
 Global $mousedownleft = 0
-
+Global $Tp_Repair_And_Back = 0
 Global $spell_gestini_verif = 0
 Global $elite = 0
 Global $handle_banlist1 = ""
@@ -95,6 +96,7 @@ Global $handle_banlistdef = ""
 Global $Ban_startstrItemList = "barbarian_|Demonhunter_|Monk_|WitchDoctor_|WD_|Enchantress_|Scoundrel_|Templar_|Wizard_|monsterAffix_|Demonic_|Generic_|fallenShaman_fireBall_impact|demonFlyer_B_clickable_corpse_01|grenadier_proj_trail"
 Global $Ban_endstrItemList = "_projectile"
 Global $Ban_ItemACDCheckList = "a1_|a3_|a2_|a4_|Lore_Book_Flippy|Topaz_|Emeraude_|Rubis_|Amethyste_|Console_PowerGlobe|GoldCoins|GoldSmall|GoldMedium|GoldLarge|healthPotion_Console"
+;Global $IgnoreList = ""
 $successratio = 1
 $success = 0
 $DebugX = $posd3[0] + $posd3[2] + 10
@@ -129,7 +131,13 @@ $Expencours = 0
 $Xp_Total = 0
 
 
+Global $ClickableRec[4] = [0,0,0,0]
+Global $SizeWindows = 0
+Global $PointFinal[4] = [0,0,0,0]
+
+
 CheckWindowD3()
+WinSetOnTop("[CLASS:D3 Main Window Class]", "", 1)
 ;;--------------------------------------------------------------------------------
 ;;      Include some files
 ;;--------------------------------------------------------------------------------
@@ -139,6 +147,13 @@ CheckWindowD3()
 #include "toolkit.au3"
 ;#include "GDI_scene.au3"
 #include <WinAPI.au3>
+#include "Lib\auto3Lib.au3"
+
+
+
+
+
+
 
 ;;================================================================================
 ;; Set Some Hotkey
@@ -193,6 +208,7 @@ Func _dorun()
 		Send("t")
 		Sleep(500)
 		Detect_Str_full_inventory()
+		CheckAndDefineSize()
 	EndIf
 
 
@@ -237,7 +253,6 @@ Func _botting()
 		EndIf
 
 		If _inmenu() And _onloginscreen() = False Then
-			RandSleep()
 			$DeathCountToggle = True
 			_resumegame()
 		EndIf
@@ -248,7 +263,7 @@ Func _botting()
 				$disconnectcount += 1
 				_log("Disconnected dc4")
 				Sleep(1000)
-				ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
+				_randomclick(398, 349)
 				Sleep(1000)
 				While Not (_onloginscreen() Or _inmenu())
 					Sleep(Random(10000, 15000))
@@ -290,9 +305,8 @@ Func _botting()
 				_log("Disconnected dc2")
 				$disconnectcount += 1
 				Sleep(1000)
-				ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
-				sleep(50)
-				ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
+				_randomclick(398, 349)
+				_randomclick(398, 349)
 			EndIf
 
 			If _playerdead() Then
@@ -305,6 +319,12 @@ Func _botting()
 
 		While _inmenu() = False And _onloginscreen() = False
 			Sleep(10)
+				If  _checkdisconnect() Then
+					Sleep(1000)
+					ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
+					sleep(50)
+					ClickUI("Root.TopLayer.BattleNetModalNotifications_main.ModalNotification.Buttons.ButtonList", 2022)
+				endif
 		WEnd
 
 	WEnd
@@ -356,181 +376,81 @@ EndFunc   ;==>Testing_IterateObjetcsList
 
 
 Func Testing()
+Global $a_range=70
+Global $SpecialmonsterList="Uber_|uber_"
+Global $monsterList="Ghoul_|Beast_B|Goatman_M|Goatman_R|WitherMoth|Beast_A|Goblin|Scavenger|Corpulent|Skeleton|QuillDemon|FleshPitFlyer|Succubus|Scorpion|azmodanBodyguard|succubus|ThousandPounder|FallenGrunt|FallenChampion|FallenHound|FallenShaman|GoatMutant|demonFlyer_B|demonTrooper_|creepMob|Brickhouse_A|Brickhouse_B|Triune_|TriuneVesselActivated_|TriuneVessel|Triune_Summonable_|ConductorProxyMaster|goblin|sandWasp|TriuneCultist|SandShark|Lacuni|Uber_|uber_"
+$IgnoreList = ""
+Dim $test_iterateallobjectslist = IterateFilterAttackV4($IgnoreList)
+If IsArray($test_iterateallobjectslist) Then
 
-;offsetlist()
+		for $i=0 to Ubound($test_iterateallobjectslist) - 1
+			_log("")
+			for $y=0 to $TableSizeGuidStruct - 1
+				_log( $i & ") (" & $y  & ") " & $test_iterateallobjectslist[$i][$y] )
+			Next
+			_log("")
+		Next
+EndIf
 
-;_checkbackpacksize()
-#cs
-	Local $index, $offset, $count, $item[10]
-	startIterateObjectsList($index, $offset, $count)
-
-	GLOBAL $ItemRefresh = false
-	Global $gestion_affixe_loot = false
-	$banlist = ""
-	dim $items
-	;_log("count -> " & $count)
-	While iterateObjectsList($index, $offset, $count, $item)
-			_log("Ofs : " & $item[8]  & " - "  & $item[1] & " - Data 1 : " & $item[5] & " - Data 2 : " & $item[6] & " - Guid : " & $item[0])
-
-			;if is_loot($item) then
-			;	handle_loot($item, $banlist, $items)
-			;EndIf
-
-	WEnd
-	;_log("Actor Ofs -> " & hex(GetPlayerOffset()))
-#ce
-
-;GetAct()
-;ListUi(0)
-
-;_log($_Myoffset)
-
-
-
-;Load_Attrib_GlobalStuff()
-;$maxhp = GetAttribute($_MyGuid, $Atrib_Hitpoints_Max_Total) ; dirty placement
-;GetMaxResource($_MyGuid, $namecharacter)
-
-;Load_Attrib_GlobalStuff()
-;GetMaxResource($_MyGuid, $namecharacter)
-;if _playerdead() then
-;	_log("mort")
-;else
-;	_log("en vie")
-;endif
-;InteractByActorName('Player_Shared_Stash')
-
-
-;Auto_spell_init()
-;GestSpellInit()
-;GetMaxResource($_MyGuid, $namecharacter)
-
-;Global $shrinebanlist = ""
-;Global $a_range = 999999
-;Global $MonsterList = "Beast_B|Goblin|Goatman_M|Goatman_R|WitherMoth|Beast_A|Scavenger|zombie|Corpulent|Skeleton|QuillDemon|FleshPitFlyer|Succubus|Scorpion|azmodanBodyguard|succubus|ThousandPounder|FallenGrunt|FallenChampion|FallenHound|FallenShaman|GoatMutant|demonTrooper_|creepMob|Brickhouse_A|Brickhouse_B|Triune_|TriuneVesselActivated_|TriuneVessel|Triune_Summonable_|ConductorProxyMaster|sandWasp|TriuneCultist|SandShark|Lacuni|Ghoul_|Uber|GoatMutant_Ranged_A|GoatMutant_Melee_A|fastMummy_C|demonFlyer|WoodWraith|TriuneVessel_|snakeMan_|uber_|Uber"
-;Attack()
-
-
-;ListUi(1)
-
-#cs
-_log( "2 : "  & GetTextUI(1540, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 2.LayoutRoot.Name"))
-_log("3 : "  &GetTextUI(375, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 3.LayoutRoot.Name"))
-_log("4 : "  &GetTextUI(646, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 4.LayoutRoot.Name"))
-_log("5 : "  &GetTextUI(302, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 5.LayoutRoot.Name"))
-_log("6 : "  &GetTextUI(579, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 6.LayoutRoot.Name"))
-_log("7 : "  &GetTextUI(1898, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 7.LayoutRoot.Name"))
-_log("8 : "  &GetTextUI(176, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 8.LayoutRoot.Name"))
-_log("9 : "  &GetTextUI(502, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 9.LayoutRoot.Name"))
-_log("10 : "  &GetTextUI(1270, "Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 10.LayoutRoot.Name"))
-#ce
-
-
-;TakeWPV2(0)
-
-#cs
-$result = GetOfsUI("Root.NormalLayer.WaypointMap_main.LayoutRoot.OverlayContainer.POI.entry 1.LayoutRoot.Name", 1)
-_log($result)
-Dim $Point = GetPositionUI($result)
-Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
-
-MouseMove($Point2[0] + $Point2[2] / 2, $Point2[1] + $Point2[3] / 2, 1)
-#ce
-
-;TakeWPV2(0)i
-
-;Detect_Str_full_inventory()
-;listui(1)
-
-;Repair()
-
-
-;StashAndRepair()
-;_log(fastcheckuiitemvisible("Root.NormalLayer.shop_dialog_mainPage.repair_dialog.RepairEquipped", 1, 124))
-
-;enoughtPotions()
-;ClickOnStashTab(1)
-
-;offsetlist()
-;_log("ETAT TP -> " &  _memoryRead( _memoryRead($_Myoffset + 0x1a4, $d3, "ptr") + 0x18, $d3, "int"))
-
-;_log(fastcheckuiitemactived("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139))
-;ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_in_town", 496)
-;_log("c'est partit !")
-;While NOT fastcheckuiitemvisible("Root.NormalLayer.gamemenu_dialog.gamemenu_bkgrnd.ButtonStackContainer.button_leaveGame", 1, 1644)
-;			sleep(200)
-;		WEnd
-;_log("trouvé")
-
-
-
-
-	;$result = GetOfsFastUI("Root.NormalLayer.inventory_dialog_mainPage.timer slot 0 x0 y0", 1509)
-
-	;Dim $Point = GetPositionUI($result)
-	;Dim $Point2 = GetUIRectangle($Point[0], $Point[1], $Point[2], $Point[3])
-
-
-	;_log( $Point2[0] & " - " & $Point2[1] & " - " & $Point2[2] & " - " & $Point2[3])
-
-
-	;$FirstCaseX = $Point2[0] + $Point2[2] / 2
-	;$FirstCaseY = $Point2[1] + $Point2[3] / 2
-
-	;$SizeCaseX =  $Point2[2]
-	;$SizeCaseY =  $Point2[3]
-
-
-;	while $c <= 9 AND $l <= 5
-
-		;$XCoordinate = $FirstCaseX + $c * $SizeCaseX
-		;$YCoordinate = $FirstCaseY + $l * $SizeCaseY
-
-;		ClickInventory($c, $l)
-
-;		if $c < 9 Then
-;			$c += 1
-;		Else
-;			$c = 0
-;			$l += 1
-;		EndIf
-
-
-;		sleep(100)
-		;MouseMove($XCoordinate, $YCoordinate, 10)
-
-;	Wend
-
-#cs
-_log("CheckHotkeys init")
-		CheckHotkeys()
-
-		_log("Auto_Spell_init init")
-		Auto_spell_init()
-		_log("GestSpellInit")
-		GestSpellInit()
-
-
-		_log("LoadAttribGlobalStuff init")
-		Load_Attrib_GlobalStuff()
-
-
-		$maxhp = GetAttribute($_MyGuid, $Atrib_Hitpoints_Max_Total) ; dirty placement
-		_log("Max HP : " & $maxhp)
-		GetMaxResource($_MyGuid, $namecharacter)
-		Send("t")
-		Sleep(500)
-		Detect_Str_full_inventory()
-
-StashAndRepair()
-#ce
-
-
-listui(1)
-
+_log("Finish")
 
 EndFunc   ;==>Testing ##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******###
 
+
+
+
+Func CheckAndDefineSize()
+	if $SizeWindows = 0 Then
+		$SizeWindows = WinGetClientSize("[CLASS:D3 Main Window Class]")
+		_log("Size Windows X : " & $SizeWindows[0] & " - Y : " & $SizeWindows[1])
+	EndIF
+
+	if $ClickableRec[0] = 0 AND $ClickableRec[1] = 0 AND $ClickableRec[2] = 0 AND $ClickableRec[3] = 0 Then
+
+		;$result = GetOfsUI("Root.NormalLayer.game_notify_dialog_backgroundScreen.dlg_new_paragon.button", 0)
+		$OfsBtnParagon = GetOfsFastUI("Root.NormalLayer.game_notify_dialog_backgroundScreen.dlg_new_paragon.button", 1028)
+		Dim $TruePointBtnParagon = GetPositionUI($OfsBtnParagon)
+		Dim $PointParagon = GetUIRectangle($TruePointBtnParagon[0], $TruePointBtnParagon[1], $TruePointBtnParagon[2], $TruePointBtnParagon[3])
+
+		;$result = GetOfsUI("Root.NormalLayer.eventtext_bkgrnd.eventtext_region.checkbox", 0)
+		$OfsBtnCheckBox = GetOfsFastUI("Root.NormalLayer.eventtext_bkgrnd.eventtext_region.checkbox", 31)
+		Dim $TruePointCheckBox = GetPositionUI($OfsBtnCheckBox)
+		Dim $PointCheckBox = GetUIRectangle($TruePointCheckBox[0], $TruePointCheckBox[1], $TruePointCheckBox[2], $TruePointCheckBox[3])
+
+		;$result = GetOfsUI("Root.NormalLayer.portraits.stack.party_stack.portrait_0.Background", 0)
+		$OfsPortrait = GetOfsFastUI("Root.NormalLayer.portraits.stack.party_stack.portrait_0.Background", 707)
+		Dim $TruePointPortrait = GetPositionUI($OfsPortrait)
+		Dim $PointPortrait = GetUIRectangle($TruePointPortrait[0], $TruePointPortrait[1], $TruePointPortrait[2], $TruePointPortrait[3])
+
+		$PointFinal[0] = $PointPortrait[3] + $PointPortrait[0]
+		$PointFinal[1] = $PointPortrait[2] + $PointPortrait[1]
+		$PointFinal[2] = $PointCheckBox[0] - $PointFinal[1]
+		$PointFinal[3] = $PointParagon[1] - $PointFinal[0]
+
+		_log("Zone Clickable -> Y[0] : " & $PointFinal[0] & " - X[1] : " & $PointFinal[1] & " - Width[2] : " & $PointFinal[2] & " - Height[3] : " & $PointFinal[3])
+	EndIF
+EndFunc
+
+
+
+
+
+Func Checkclickable($coord)
+
+		if $coord[1] <= $PointFinal[0] Then
+			$coord[1] = $PointFinal[0] + 1
+		Elseif $coord[1] >= ($PointFinal[0] + $PointFinal[3]) Then
+			$coord[1] =  ($PointFinal[0] + $PointFinal[3]) - 1
+		EndIF
+
+		if $coord[0] <= $PointFinal[1] Then
+			$coord[0] = $PointFinal[1] + 1
+		Elseif $coord[0] >= ($PointFinal[1] + $PointFinal[2]) Then
+			$coord[0] = ($PointFinal[1] + $PointFinal[2]) - 1
+		EndIF
+
+		return $coord
+EndFunc
 
 Func ClickInventory($c, $l)
 	$result = GetOfsFastUI("Root.NormalLayer.inventory_dialog_mainPage.timer slot 0 x0 y0", 1509)
@@ -552,7 +472,7 @@ EndFunc
 ;###########################################################################
 ;###########################################################################
 ;###########################################################################
-;################iiiiii###########################################################
+;####################################################################
 ;###########################################################################
 ;###########################################################################
 
