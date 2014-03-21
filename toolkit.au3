@@ -3398,8 +3398,13 @@ Func CheckItem($_GUID, $_NAME, $_MODE = 0)
 		For $is = 1 To UBound($SalvageQualiteItem) -1
 			;_log($SalvageQualiteItem[$is])
 			If $quality = $SalvageQualiteItem[$is] Then
+			If $Salvage = "True" Then
 				_log($_NAME & " ==> It's the salvage level >" & $SalvageQualiteItem[$is])
 				Return "Salvage"
+			Else
+				_log($_NAME & " ==> It's trash cuz salvage if off, level >" & $SalvageQualiteItem[$is])
+				Return "Trash"
+			Endif
 			EndIf
 		Next
 
@@ -5860,6 +5865,27 @@ Func StashAndRepair()
 				MouseClick('left')
 				Sleep(Random(100, 200))
 			Next
+		endif
+			;we need to clean our trash too
+			$ToTrash = _ArrayFindAll($items, "Trash", 0, 0, 0, 1, 2)
+		If Not @error Then
+
+			ClickUI("Root.NormalLayer.vendor_dialog_mainPage.tab_2")
+			Sleep(Random(100, 200))
+			ClickUI("Root.NormalLayer.vendor_dialog_mainPage.salvage_dialog.salvage_button")
+
+			CheckWindowD3Size()
+
+			For $i = 0 To UBound($ToTrash) - 1
+				InventoryMove($items[$ToTrash[$i]][0], $items[$ToTrash[$i]][1])
+				Sleep(Random(100, 500))
+				$ItemToSell = $ItemToSell + 1
+				MouseClick('left')
+				Sleep(Random(100, 200))
+			Next
+			;;;;
+
+
 			Sleep(Random(100, 200))
 			Send("{SPACE}")
 			Sleep(Random(100, 200))

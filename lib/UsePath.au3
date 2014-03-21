@@ -96,7 +96,7 @@ Func UsePath(ByRef $path)
 			$Coords_Rnd[1] = Random($Coords[1] - 20, $Coords[1] + 15)
 
 			$Coords_Rnd = Checkclickable($Coords_Rnd)
-
+			MouseMove($Coords_Rnd[0], $Coords_Rnd[1], 3)
 			$toggletry += 1
 			;_log("Tryin move :" & " x:" & $_x & " y:" & $_y & "coords: " & $Coords[0] & "-" & $Coords[1] & " angle: " & $angle & " Toggle try: " & $toggletry)
 			If $angle >= 2.0 * $PI Or $toggletry > 9 Or _playerdead() Then

@@ -137,6 +137,7 @@ Global $PointFinal[4] = [0,0,0,0]
 
 
 CheckWindowD3()
+
 WinSetOnTop("[CLASS:D3 Main Window Class]", "", 1)
 ;;--------------------------------------------------------------------------------
 ;;      Include some files
@@ -376,22 +377,12 @@ EndFunc   ;==>Testing_IterateObjetcsList
 
 
 Func Testing()
-Global $a_range=70
-Global $SpecialmonsterList="Uber_|uber_"
-Global $monsterList="Ghoul_|Beast_B|Goatman_M|Goatman_R|WitherMoth|Beast_A|Goblin|Scavenger|Corpulent|Skeleton|QuillDemon|FleshPitFlyer|Succubus|Scorpion|azmodanBodyguard|succubus|ThousandPounder|FallenGrunt|FallenChampion|FallenHound|FallenShaman|GoatMutant|demonFlyer_B|demonTrooper_|creepMob|Brickhouse_A|Brickhouse_B|Triune_|TriuneVesselActivated_|TriuneVessel|Triune_Summonable_|ConductorProxyMaster|goblin|sandWasp|TriuneCultist|SandShark|Lacuni|Uber_|uber_"
-$IgnoreList = ""
-Dim $test_iterateallobjectslist = IterateFilterAttackV4($IgnoreList)
-If IsArray($test_iterateallobjectslist) Then
-
-		for $i=0 to Ubound($test_iterateallobjectslist) - 1
-			_log("")
-			for $y=0 to $TableSizeGuidStruct - 1
-				_log( $i & ") (" & $y  & ") " & $test_iterateallobjectslist[$i][$y] )
-			Next
-			_log("")
-		Next
-EndIf
-
+CheckAndDefineSize()
+Detect_Str_full_inventory()
+Load_Attrib_GlobalStuff()
+	SetItemLootLevel() ; should not be inside statsdisplay func
+			SetSalvageLootLevel() ; should not be inside statsdisplay func
+StashAndRepair()
 _log("Finish")
 
 EndFunc   ;==>Testing ##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******##*******###
