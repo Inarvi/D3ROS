@@ -145,18 +145,19 @@ Func UsePath(ByRef $path)
 		$Coords_RndX = Random($Coords[0] - 20, $Coords[0] + 20)
 		$Coords_RndY = Random($Coords[1] - 20, $Coords[1] + 20)
 
-		If $Coords_RndX < 40 Then
-			$Coords_RndX = 40
-		ElseIf $Coords_RndX > 790 Then
-			$Coords_RndX = 790
-		EndIf
+		#cs
+				If $Coords_RndX < 40 Then
+					$Coords_RndX = 40
+				ElseIf $Coords_RndX > 790 Then
+					$Coords_RndX = 790
+				EndIf
 
-		If $Coords_RndY < 10 Then
-			$Coords_RndY = 10
-		ElseIf $Coords_RndY > 540 Then
-			$Coords_RndY = 540
-		EndIf
-
+				If $Coords_RndY < 10 Then
+					$Coords_RndY = 10
+				ElseIf $Coords_RndY > 540 Then
+					$Coords_RndY = 540
+				EndIf
+		#ce
 
 		MouseMove($Coords_RndX, $Coords_RndY, 3) ;little randomisation
 		MouseDown("middle")

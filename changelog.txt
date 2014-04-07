@@ -1,3 +1,12 @@
+Mise à jour 8.2h le 07/04/14
+Support pour le mode Aventure
+Support Demonic chest (à terminer)
+Support Crusader (auto skill need tweaking)
+Détection des langues plus rapide
+Compatible toutes résolutions (corrigé)
+Autres Optimisations/corrections oubliées
+
+###########################################################################################################
 Mise à jour 8.2f le 21/03/14
 Optimisation des boucles de lectures
 Detection mob/items plus rapide

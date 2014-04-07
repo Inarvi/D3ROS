@@ -72,6 +72,7 @@ Global $MaximumSpirit = 100
 Global $MaximumFury = 100
 Global $MaximumArcane = 100
 Global $MaximumMana = 100
+Global $MaximumWrath = 100
 
 ;Global $Act = "3"
 Global $Devmode = "true"
@@ -147,6 +148,9 @@ global $tab_aff2[15][2]=[ _
 	global $energy_mini=0
 	global $BanAffixList=""
     dim $ignore_affix[1][2]
+
+	global $follower="false"
+	global $master="false"
 
 	Global $Gest_affixe_ByClass = "false"
 global $key_cana=""
@@ -281,6 +285,10 @@ Func writeConfigs($profilFile = "settings.ini", $creation = 0)
 	iniWrite($profilFile,"Run info","Gest_affixe_ByClass", $Gest_affixe_ByClass)
 	;IniWrite($profilFile,"Run info","Act", $Act)
 	IniWrite($profilFile, "Run info", "Devmode", $Devmode)
+
+	IniWrite($profilFile, "Run info", "Master", $master)
+	IniWrite($profilFile, "Run info", "Follower", $follower)
+
 EndFunc   ;==>writeConfigs
 
 Func loadConfigs($profilFile = "settings.ini", $creation = 0)
@@ -419,6 +427,9 @@ Func loadConfigs($profilFile = "settings.ini", $creation = 0)
 
 	;$Act = IniRead($profilFile,"Run info","Act", $Act)
 	$Devmode = IniRead($profilFile, "Run info", "Devmode", $Devmode)
+
+	$master = IniRead($profilFile, "Run info", "Master", $master)
+	$follower = IniRead($profilFile, "Run info", "Follower", $follower)
 
 	#cs
 	If $RightClickSpellEnergy <> "" And $RightClickSpellEnergy <> "discipline" And $RightClickSpellEnergy <> "hatred" And $RightClickSpellEnergy <> "spirit" And $RightClickSpellEnergy <> "arcane" And $RightClickSpellEnergy <> "mana" And $RightClickSpellEnergy <> "fury" Then

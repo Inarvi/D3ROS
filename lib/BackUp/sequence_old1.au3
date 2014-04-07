@@ -33,13 +33,9 @@ Func TraitementSequence(ByRef $arr_sequence, $index, $mvtp = 0)
 
 
 		ElseIf $arr_sequence[$index][1] = "takewp" Then
-			TakeWPV3($arr_sequence[$index][2])
-			;TakeWp($arr_sequence[$index][2], $arr_sequence[$index][3], $arr_sequence[$index][4], $arr_sequence[$index][5])
+			TakeWp($arr_sequence[$index][2], $arr_sequence[$index][3], $arr_sequence[$index][4], $arr_sequence[$index][5])
 		ElseIf $arr_sequence[$index][1] = "_townportal" Then
-			if Not _TownPortalnew() Then
-				$GameFailed=1
-				Return False
-			EndIf
+			_townportal()
 		ElseIf $arr_sequence[$index][1] = "offsetlist" Then
 			While Not offsetlist()
 				Sleep(40)
@@ -54,7 +50,7 @@ Func _playerdead_revive()
 			Return False
 		EndIf
 		$playerdeadlookfor = "NormalLayer.deathmenu_dialog"
-		$return = fastcheckuiitemvisible($playerdeadlookfor, 1, 793)
+		$return = fastcheckuiitemvisible($playerdeadlookfor, 1, 969)
 		Return $return
 	EndIf
 	Return False
@@ -67,49 +63,22 @@ Func init_sequence()
 EndFunc   ;==>init_sequence
 
 Func revive(ByRef $path)
-
-;Return 0 -> Pas Mort
-;Return 1 -> Revive At Corp
-;Return 2 -> Revive On Last CheckPoint
-;Return 3 -> Trop de Res on return ville puis leave
-
-	;VERIFIER QUE LE STUFF EST PAS JAUNE OU ROUGE
-
 	If _playerdead_revive() Then
 		MouseUp("middle")
 		$nb_die_t = $nb_die_t + 1
 		$Res_compt = $Res_compt + 1
 		_log("You are dead, max :" & $rdn_die_t - $nb_die_t & " more death allowed")
-		If $nb_die_t <= $rdn_die_t AND NOT _checkRepair() Then
-
+		If $nb_die_t <= $rdn_die_t Then
 			Sleep(Random(5000, 6000))
-
-			if NOT _checkRepair() Then
-				if fastcheckuiitemactived("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139) Then
-					ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_corpse", 139)
-					_log("Res At Corp")
-					Sleep(Random(6000, 7000))
-					buffinit()
-					Return 1
-				Else ;On ne peut pas revive sur le corp
-					ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_at_checkpoint", 820)
-					_log("Res At LAst CheckPoint")
-					Sleep(Random(750, 1000))
-					bloc_sequence($path, 1)
-					Return 2 ;on res
-				EndIf
-			EndIF
-
+			MouseClick("left", 400, 470, 1, 6)
+			Sleep(Random(750, 1000))
+			bloc_sequence($path, 1)
+			Return True ;on res
 		Else
-
-			_log("You have reached the max number of revive : " & $rdn_die_t & " Or your stuff is destroy")
-			Sleep(Random(5000, 6000))
-			ClickUI("Root.NormalLayer.deathmenu_dialog.dialog_main.button_revive_in_town", 496)
-			sleep(4000)
-			Return 3
+			_log("You have reached the max number of revive : " & $rdn_die_t)
 		EndIf
 	EndIf
-	Return 0
+	Return False
 EndFunc   ;==>revive
 
 Func reverse_arr(ByRef $arr_MTP)
@@ -153,7 +122,7 @@ Func bloc_sequence(ByRef $arr_MTP, $revive = 0)
 	If _checkRepair() Then
 
 		unbuff()
-			tpRepairAndBack()
+		NeedRepair()
 		buffinit()
 	EndIf
 
@@ -165,7 +134,7 @@ Func bloc_sequence(ByRef $arr_MTP, $revive = 0)
 
 	If IsArray($arr_MTP) Then
 
-		If trim(StringLower($UsePath)) = "true" then
+		If $UsePath Then
 
 			UsePath($arr_MTP)
 
@@ -327,7 +296,7 @@ Func sequence()
 		Local $old_ResActivated = $ResActivated
 		Local $old_UsePath = $UsePath
 		Local $old_TakeShrines = $TakeShrines
-
+		
 		Local $compt_line = 0
 		Dim $txttoarray[1]
 
@@ -390,34 +359,40 @@ Func sequence()
 				If StringInStr($line, "takewp=", 2) Then; TakeWP detected
 
 					$line = StringReplace($line, "takewp=", "", 0, 2)
-					$table_wp = $line
+					$table_wp = StringSplit($line, ",", 2)
 
+
+					If UBound($table_wp) = 4 Then
 						If $noblocline = 0 Then ;Pas de Detection precedente de nobloc() on met donc dans l'array la cmd suivante
 							SendSequence($array_sequence)
 							$array_sequence = ArrayInit($array_sequence)
-							_log("Enclenchement d'un TakeWP(" & $table_wp & "line : " & $i + 1)
-							TakeWPV3($table_wp)
+							_log("Enclenchement d'un TakeWP(" & $table_wp[0] & ", " & $table_wp[1] & ", " & $table_wp[2] & ", " & $table_wp[3] & ") line : " & $i + 1)
+							TakeWP($table_wp[0], $table_wp[1], $table_wp[2], $table_wp[3])
 							$line = ""
 						Else
-							_log("Mise en array d'un TakeWP(" & $table_wp & ") line : " & $i + 1)
+							_log("Mise en array d'un TakeWP(" & $table_wp[0] & ", " & $table_wp[1] & ", " & $table_wp[2] & ", " & $table_wp[3] & ") line : " & $i + 1)
 							$array_sequence = ArrayUp($array_sequence)
 							$array_sequence[UBound($array_sequence) - 1][0] = 1
 							$array_sequence[UBound($array_sequence) - 1][1] = "takewp"
-							$array_sequence[UBound($array_sequence) - 1][2] = $table_wp
+							$array_sequence[UBound($array_sequence) - 1][2] = $table_wp[0]
+							$array_sequence[UBound($array_sequence) - 1][3] = $table_wp[1]
+							$array_sequence[UBound($array_sequence) - 1][4] = $table_wp[2]
+							$array_sequence[UBound($array_sequence) - 1][5] = $table_wp[3]
 							$noblocline = 0
 							$line = ""
 						EndIf
 
+					Else
+						$error = 1
+						_log("Wp invalid argument or number, Line : " & $i + 1, 1)
+					EndIf
 
 				ElseIf StringInStr($line, "_townportal()", 2) Then; _townportal() detected
 					If $noblocline = 0 Then ;Pas de Detection precedente de nobloc() on met donc dans l'array la cmd suivante
 						SendSequence($array_sequence)
 						$array_sequence = ArrayInit($array_sequence)
 						_log("Enclenchement d'un _townportal() line : " & $i + 1)
-						if Not _TownPortalnew() Then
-							$GameFailed=1
-							Return False
-						EndIf
+						_townportal()
 
 						$line = ""
 					Else
@@ -509,7 +484,7 @@ Func sequence()
 						$definition = 1
 					EndIf
 				ElseIf StringInStr($line, "takeshrines=", 2) Then
-
+					
 					$line = StringReplace($line, "takeshrines=", "", 0, 2)
 					If $old_TakeShrines Then
 						If $line = "true" Then
