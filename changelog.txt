@@ -1,3 +1,11 @@
+Mise à jour 8.2i le 09/04/14
+Compatible D3 2.0.4
+Correction $stringreferencefromfile non déclaré dans certains cas
+Support du compagnon goblin (puzzle ring)
+Stabilité accrue sur les machines lentes (Foxey)
+Fonction isbuffactive désactivé
+
+###########################################################################################################
 Mise à jour 8.2h le 07/04/14
 Support pour le mode Aventure
 Support Demonic chest (à terminer)

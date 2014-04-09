@@ -93,7 +93,7 @@ Global $elite = 0
 Global $handle_banlist1 = ""
 Global $handle_banlist2 = ""
 Global $handle_banlistdef = ""
-Global $Ban_startstrItemList = "DH_|x1_DemonHunter|D3Arrow|barbarian_|Demonhunter_|Monk_|WitchDoctor_|WD_|Enchantress_|Scoundrel_|Templar_|Wizard_|monsterAffix_|Demonic_|Generic_|fallenShaman_fireBall_impact|demonFlyer_B_clickable_corpse_01|grenadier_proj_trail"
+Global $Ban_startstrItemList = "treasureGoblin_A_Sl|DH_|x1_DemonHunter|D3Arrow|barbarian_|Demonhunter_|Monk_|WitchDoctor_|WD_|Enchantress_|Scoundrel_|Templar_|Wizard_|monsterAffix_|Demonic_|Generic_|fallenShaman_fireBall_impact|demonFlyer_B_clickable_corpse_01|grenadier_proj_trail"
 Global $Ban_endstrItemList = "_projectile"
 Global $Ban_ItemACDCheckList = "a1_|a3_|a2_|a4_|a5_|Lore_Book_Flippy|D3Arrow|Topaz_|Emeraude_|Rubis_|Amethyste_|Console_PowerGlobe|GoldCoin|GoldSmall|GoldMedium|GoldLarge|healthPotion_Console"
 Global $My_FastAttributeGroup
@@ -178,9 +178,22 @@ LoadingSNOExtended()
 Func _dorun()
 	_log("======== new run ==========")
 
-	While Not offsetlist()
-		Sleep(40)
-	WEnd
+;	While Not offsetlist()
+;		Sleep(40)
+;	WEnd
+
+;foxey
+	Local $hTimer = TimerInit()
+        While Not offsetlist() And TimerDiff($hTimer) < 60000 ; 60secondes
+                        Sleep(40)
+        WEnd
+
+        Sleep(3000)
+
+        If TimerDiff($hTimer) >= 60000 Then
+                        Return False
+	EndIf
+;foxey
 
 	If $GameFailed = 0 Then
 		$success += 1

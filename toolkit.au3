@@ -127,7 +127,7 @@ mesurestart()
 EndFunc   ;==>FindActor
 
 
-Global $Ofs_UI_A = 0x994
+Global $Ofs_UI_A = 0x984 ;0x994
 Global $Ofs_UI_B = 0x0
 Global $Ofs_UI_C = 0x10
 Global $Ofs_UI_D = 0x0
@@ -950,7 +950,7 @@ Func IterateBackpack($bag = 0, $rlvl = 0)
 	;$bag = 0 for backpack and 15 for stash
 	;$rlvl = 1 for actual level requirement of item and 0 for base required level
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr")
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$CurrentOffset = _memoryread(_memoryread($ptr3 + 0x120, $d3, "ptr") + 0x0, $d3, "ptr");$_LocalActor_3
@@ -990,7 +990,7 @@ EndFunc   ;==>IterateBackpack
 
 Func Iteratestuff()
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr") ;8a0
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr") ;8a0
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 
@@ -1651,11 +1651,11 @@ Func LocateMyToon()
 								return true
 							EndIf
 						else
-							;_log("Fail LocateMyToon, $_NAME <> $name_by_acd -> " & $count_locatemytoon)
+						;	_log("Fail LocateMyToon, $_NAME <> $name_by_acd -> " &$_NAME& "/"& $name_by_acd & " | " & $count_locatemytoon)
 							$count_locatemytoon += 1
 						EndIf
 					else
-						;_log("Fail LocateMyToon, Empty $_NAME  -> " & $count_locatemytoon)
+					;	_log("Fail LocateMyToon, Empty $_NAME  -> " & $count_locatemytoon)
 						$count_locatemytoon += 1
 					EndIf
 
@@ -1693,7 +1693,7 @@ Func SetSalvageLootLevel()
 EndFunc	;==>SetSalvageLootLevel
 Func GetACDByGuid($Guid, $_displayInfo = 0)
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr") ;0x8a8
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$CurrentOffset = _memoryread(_memoryread($ptr3 + 0x148, $d3, "ptr") + 0x0, $d3, "ptr");$_LocalActor_3
@@ -1720,7 +1720,7 @@ EndFunc   ;==>GetACDByGuid
 ;==================================================================================
 Func IterateLocalActor()
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr")
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$CurrentOffset = _memoryread(_memoryread($ptr3 + 0x148, $d3, "ptr") + 0x0, $d3, "ptr");$_LocalActor_3
@@ -1735,7 +1735,7 @@ Func IterateLocalActor()
 EndFunc   ;==>IterateLocalActor
 Func startIterateLocalActor(ByRef $index, ByRef $offset, ByRef $count)
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr")
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$index = 0
@@ -2346,7 +2346,7 @@ EndFunc   ;==>Resistance
 
 Func GetACDOffsetByACDGUID($Guid)
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr") ;8b8
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "int")
 	$index = BitAND($Guid, 0xFFFF)
 
@@ -2524,7 +2524,7 @@ EndFunc
 
 Func StructACDByIdACD($idacd)
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr")
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$CurrentOffset = _memoryread(_memoryread($ptr3 + 0x120, $d3, "ptr") + 0x0, $d3, "ptr")
@@ -2565,7 +2565,7 @@ EndFunc
 Func IterateCACD(ByRef $ItemCRactor)
 
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr")
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$CurrentOffset = _memoryread(_memoryread($ptr3 + 0x120, $d3, "ptr") + 0x0, $d3, "ptr")
@@ -2612,7 +2612,7 @@ EndFunc   ;==>IterateBackpack
 Func IterateCACDV2()
 
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x8b8, $d3, "ptr")
+	$ptr2 = _memoryread($ptr1 + 0x8a8, $d3, "ptr")
 	$ptr3 = _memoryread($ptr2 + 0x0, $d3, "ptr")
 	$_Count = _memoryread($ptr3 + 0x108, $d3, "int")
 	$CurrentOffset = _memoryread(_memoryread($ptr3 + 0x120, $d3, "ptr") + 0x0, $d3, "ptr")
@@ -3963,9 +3963,9 @@ Func TakeWPV2($WPNumber=0)
 
 
 			Local $areatry = 0
-			  While $Newarea = $Curentarea And $areatry < 13 ; on attend d'avoir une nouvelle Area environ 6 sec
+			  While $Newarea = $Curentarea And $areatry < 25 ; on attend d'avoir une nouvelle Area environ 6 sec
 				$Newarea = GetLevelAreaId()
-				Sleep(500)
+				Sleep(1000)
 				$areatry += 1
 			  WEnd
 
@@ -5349,7 +5349,7 @@ EndFunc   ;==>mesureEnd
 
 Func GetFAG($idAttrib)
 	$c = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$c1 = _memoryread($c + 0x8ac, $d3, "ptr")
+	$c1 = _memoryread($c + 0x89C, $d3, "ptr") ;0x8ac
 	$c2 = _memoryread($c1 + 0x54, $d3, "ptr")
 	$id = BitAND($idAttrib, 0xFFFF)
 	$bitshift = _memoryread($c2 + 0x164, $d3, "int")
@@ -5438,7 +5438,9 @@ Func IsPowerReady($idAttrib, $idPower)
 EndFunc   ;==>IsPowerReady
 
 Func IsBuffActive($idAttrib, $idPower)
-	Return _memoryread(GetAttributeOfs($idAttrib, BitOR($Atrib_Buff_Active[0], BitShift($idPower, -12))), $d3, "int") == 1
+	;Return _memoryread(GetAttributeOfs($idAttrib, BitOR($Atrib_Buff_Active[0], BitShift($idPower, -12))), $d3, "int") == 1
+	;does not exist anymore in ros after 2.0.4
+	Return
 EndFunc   ;==>IsBuffActive
 
 
@@ -6124,11 +6126,11 @@ EndFunc   ;==>offset_spell_search
 ;==================================================================================
 Func GetPlayerOffset()
 	$ptr1 = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2 = _memoryread($ptr1 + 0x9a4, $d3, "ptr")      ;0x96c
+	$ptr2 = _memoryread($ptr1 + 0x994, $d3, "ptr")      ;0x9a4
 	$index = _memoryread($ptr2 + 0x0, $d3, "int")
 
 	$ptr1bis = _memoryread($ofs_objectmanager, $d3, "ptr")
-	$ptr2bis = _memoryread($ptr1 + 0x88c, $d3, "ptr")    ;0x874
+	$ptr2bis = _memoryread($ptr1 + 0x87c, $d3, "ptr")    ;0x88c
 	$id = _memoryread($ptr2bis + 0x5c + $index * 0xD138, $d3, "int")
 
 	Return GetActorFromId($id)
@@ -6778,26 +6780,26 @@ Func SafePortStart()
 	$tptry = 0
 	$tpcheck = 0
 
-	While $tpcheck = 0 And $tptry <= 1
-		_log("try n°" & $tptry + 1 & " hearthPortal")
-		InteractByActorName('hearthPortal')
-		$Newarea = GetLevelAreaId()
+        While $tpcheck = 0 And $tptry < 6
+                _log("try n°" & $tptry + 1 & " hearthPortal")
+                InteractByActorName('hearthPortal')
+                $Newarea = GetLevelAreaId()
 
-		Local $areatry = 0
+                Local $areatry = 0
 
-		While $Newarea = $Curentarea And $areatry <= 10
-			$Newarea = GetLevelAreaId()
-			Sleep(500)
-			$areatry = $areatry + 1
-		WEnd
+                While $Newarea = $Curentarea And $areatry < 10
+                        $Newarea = GetLevelAreaId()
+                        Sleep(1000)
+                        $areatry += 1
+                WEnd
 
-		If $Newarea <> $Curentarea Then
-			$tpcheck = 1
-		Else
-			$tptry += 1
-		EndIf
+                If $Newarea <> $Curentarea Then
+                        $tpcheck = 1
+                Else
+                        $tptry += 1
+                EndIf
 
-	WEnd
+        WEnd
 
 	If $Newarea <> $Curentarea Then
 		_log('succesfully teleported back : ' & $Curentarea & ":" & $Newarea)
@@ -6873,9 +6875,9 @@ Func SafePortBack()
 		$Newarea = GetLevelAreaId()
 
 		Local $areatry = 0
-		While $Newarea = $Curentarea And $areatry <= 10
+		While $Newarea = $Curentarea And $areatry <= 15
 			$Newarea = GetLevelAreaId()
-			Sleep(500)
+			Sleep(1000)
 			$areatry += 1
 		WEnd
 
@@ -7162,7 +7164,7 @@ Func Detect_Str_full_inventory()
 	Global $Byte_Full_Stash[2]
 	Global $Byte_Boss_TpDeny[2]
 	Global $Byte_NoItem_Identify[2]
-
+Local $stringreferencefromfile= "empty"
 Local $stringread = GetTextUI(731,'Root.TopLayer.error_notify.error_text')
 $stringreference =StringLeft ( $stringread, 15 )
 _log("$stringreference : "& $stringreference)
@@ -7678,7 +7680,7 @@ Func GameState()
 	;1 // In Game
 	;0 // Loading Screen
 	;5 // Menu
-	return _memoryRead(_memoryRead($ofs_objectmanager ,$d3, "ptr") + 0x900, $d3, "ptr")
+	return _memoryRead(_memoryRead($ofs_objectmanager ,$d3, "ptr") + 0x8f0, $d3, "ptr") ; 0x900
 Endfunc
 
 Func BanActor($str)
@@ -7734,8 +7736,8 @@ EndFunc
 
 Func GetLocalPlayer()
 	;Global $ObjManStorage = 0x7CC ;0x794
-	$v0 = _MemoryRead(_MemoryRead($ofs_objectmanager, $d3, 'int') + 0x9a4, $d3, 'int') ;0x94C/934
-	$v1 = _MemoryRead(_MemoryRead($ofs_objectmanager, $d3, 'int') + 0x88c, $d3, 'int')
+	$v0 = _MemoryRead(_MemoryRead($ofs_objectmanager, $d3, 'int') + 0x994, $d3, 'int') ;0x94C/934
+	$v1 = _MemoryRead(_MemoryRead($ofs_objectmanager, $d3, 'int') + 0x87c, $d3, 'int')
 
 	if $v0 <> 0 AND _MemoryRead($v0, $d3, 'int') <> -1 AND $v1 <> 0 Then
 		return 0xD138 * _MemoryRead($v0, $d3, 'int') + $v1 + 0x58
